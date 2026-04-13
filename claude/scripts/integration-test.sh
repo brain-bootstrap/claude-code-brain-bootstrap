@@ -15,7 +15,8 @@ pass() { echo "  ✅ $1"; PASS=$((PASS + 1)); }
 fail() { echo "  ❌ $1"; FAIL=$((FAIL + 1)); }
 
 cleanup() {
-  for d in "${CLEANUP_DIRS[@]}"; do
+  # ${arr[@]+...} guards against bash 3.x "unbound variable" on empty arrays with set -u
+  for d in ${CLEANUP_DIRS[@]+"${CLEANUP_DIRS[@]}"}; do
     rm -rf "$d" 2>/dev/null || true
   done
 }
@@ -24,7 +25,8 @@ trap cleanup EXIT
 make_test_repo() {
   local dir
   dir=$(mktemp -d)
-  CLEANUP_DIRS+=("$dir")
+  # NOTE: Do NOT modify CLEANUP_DIRS here — $() runs in a subshell,
+  # so array modifications are lost. Caller must add to CLEANUP_DIRS.
   git init "$dir" >/dev/null 2>&1
   # Git needs at least one commit for rev-parse to work
   git -C "$dir" commit --allow-empty -m "init" >/dev/null 2>&1
@@ -49,6 +51,7 @@ fi
 echo ""
 echo "Test 2: FRESH install"
 FRESH_DIR=$(make_test_repo)
+CLEANUP_DIRS+=("$FRESH_DIR")
 
 if bash "$SCRIPT_DIR/install.sh" "$FRESH_DIR" >/dev/null 2>&1; then
   pass "install.sh FRESH exits 0"

@@ -97,8 +97,12 @@ if ! git -C "$TARGET" rev-parse --git-dir >/dev/null 2>&1; then
 fi
 
 # Check 3: Must be the REPO ROOT, not a subdirectory
-GIT_ROOT="$(git -C "$TARGET" rev-parse --show-toplevel 2>/dev/null || true)"
-if [ "$TARGET" != "$GIT_ROOT" ]; then
+# Use --show-cdup (empty at root) instead of comparing --show-toplevel paths.
+# Path string comparison breaks on macOS (symlinks: /var vs /private/var) and
+# Windows (MSYS vs native paths: /tmp vs C:/Users/...).
+GIT_CDUP="$(git -C "$TARGET" rev-parse --show-cdup 2>/dev/null)" || true
+if [ -n "$GIT_CDUP" ]; then
+  GIT_ROOT="$(git -C "$TARGET" rev-parse --show-toplevel 2>/dev/null || true)"
   echo ""
   echo "╔══════════════════════════════════════════════════════╗"
   echo "║  ᗺB  Brain Bootstrap — Smart Installer               ║"
