@@ -433,7 +433,7 @@ All contributions must be **domain-agnostic** (no project-specific content).
 
 🐛 **Found a bug?** → [Open an issue](https://github.com/y-abs/claude-code-brain-bootstrap/issues/new/choose) — structured templates for bug reports and feature requests.
 
-🔄 **CI runs 3 checks on every PR** — template validation (120 checks), ShellCheck on all scripts, and documentation link verification. All must pass to merge.
+🔄 **CI runs 5 checks on every PR** — template validation (120 checks), ShellCheck on all scripts, portability lint (GNU-only pattern detector), cross-platform validation (Linux / macOS / Windows), and integration tests (FRESH + UPGRADE + 4 guard scenarios, all 3 platforms). All must pass to merge.
 
 > 🚀 **Maintainers:** See [CONTRIBUTING.md — Release Process](CONTRIBUTING.md#-release-process-maintainers-only) for the full step-by-step release workflow (PR → tag → GitHub Release).
 
