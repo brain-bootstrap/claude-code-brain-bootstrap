@@ -201,7 +201,7 @@ Your repo
 │   ├── build.md                    ← Build/test/lint/serve commands for your stack
 │   ├── terminal-safety.md          ← Shell anti-patterns that cause session hangs
 │   ├── cve-policy.md               ← Security decision tree
-│   ├── scripts/                    ← 12 bootstrap & maintenance scripts
+│   ├── scripts/                    ← 15 bootstrap & maintenance scripts
 │   ├── bootstrap/                  ← 🧠 Setup scaffolding (auto-deleted after bootstrap)
 │   ├── tasks/lessons.md            ← 🧠 Accumulated wisdom (persists across sessions)
 │   ├── tasks/todo.md               ← 📝 Current task plan (survives session boundaries)
@@ -263,6 +263,10 @@ The knowledge layer (`claude/*.md`) is the **single source of truth**. Each tool
   rules,                         docs
   settings
 ```
+
+**Model selection is enforced across both tools:**
+- **Claude Code** — agents declare their optimal model (`model: opus` in frontmatter). Research agents use the session model (faster/cheaper); review and security agents request Opus (correctness matters more than cost). Falls back to session model when unavailable.
+- **GitHub Copilot** — `copilot-instructions.md` enforces model selection via instructions: planning/review/architecture tasks **stop and warn** if the active model is a "mini"/"flash"/"lite" variant, requesting the user switch to the most capable model in the IDE model picker. Quick tasks (build, lint, test) run on any model.
 
 | Tool | What it reads | Depth |
 |:-----|:-------------|:-----:|
