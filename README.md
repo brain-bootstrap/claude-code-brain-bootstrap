@@ -13,7 +13,6 @@
   <a href="#"><img src="https://img.shields.io/badge/Claude_Code-Ready-blueviolet" alt="Claude Code"></a>
   <a href="#"><img src="https://img.shields.io/badge/GitHub_Copilot-Ready-brightgreen" alt="GitHub Copilot"></a>
   <a href="#-one-brain-three-ai-assistants--any-model"><img src="https://img.shields.io/badge/Ollama_%7C_LM_Studio-Local_LLMs_Ready-ff6f00" alt="Local LLMs Ready"></a>
-</p>
 
 <p align="center">
   <a href="#-sound-familiar">The Problem</a> &nbsp;·&nbsp;
@@ -87,6 +86,8 @@ rm -rf /tmp/brain
 ```
 
 > 🔍 **Pre-flight check:** `bash /tmp/brain/install.sh --check` — verifies git, bash version, and optional `jq` before touching your repo. Runs in 1 second, no side effects.
+> 🔍 **Pre-flight check:** `bash /tmp/brain/install.sh --check` — verifies git, bash version, and optional `jq` before touching your repo. Runs in 1 second, no side effects.
+
 
 The install script **auto-detects** whether your repo is a fresh install or an upgrade:
 
@@ -123,6 +124,20 @@ The bootstrap is **adaptive** — it runs 8 domain-detection greps and automatic
 > 💡 **Already have a Claude Code config?** Bootstrap detects it and enters **upgrade mode** — your domain docs, lessons, tasks, and customizations are preserved. Only missing pieces are added.
 
 ---
+## 🖥️ Platform Support
+
+| Platform | Status | Shell | Notes |
+|:---------|:-------|:------|:------|
+| **Linux** | ✅ Native | bash 4+ | Zero configuration needed |
+| **macOS** | ✅ Native | bash 3.2+ (system) / bash 5 (Homebrew) | `discover.sh` + `populate-templates.sh` require Bash 4+ (`brew install bash`) — all other scripts work with system bash |
+| **Windows (WSL2)** | ✅ Recommended | bash 5 (Ubuntu) | Full Linux environment — everything works natively |
+| **Windows (Git Bash)** | ✅ Supported | bash 4.4+ (MSYS2) | Works with default Git for Windows installation |
+| **Windows (CMD/PowerShell)** | ❌ Not supported | — | Claude Code itself requires a Unix shell |
+
+> **Required tools:** `git`, `bash` ≥ 3.2 (≥ 4 for `/bootstrap`). **Recommended:** `jq` (auto-merges settings).
+
+---
+
 
 ## 🖥️ Platform Support
 
@@ -221,7 +236,7 @@ The system is designed to **minimize token cost** while maximizing context — y
 
 | Layer | What | When loaded | Cost |
 |:------|:-----|:-----------|:----:|
-| 🟢 **Always on** | `CLAUDE.md` + imported rules — operating protocol, critical patterns | Every conversation | ~3-4K tokens |
+| 🔧 **Brain scripts** | 15 | `discover.sh` (3800-line stack detector), `populate-templates.sh`, `post-bootstrap-validate.sh`, `validate.sh`, `canary-check.sh`, `_platform.sh` (portable shell helpers — Linux/macOS/Windows), `portability-lint.sh` (GNU-only pattern detector), `integration-test.sh` (17 assertions: FRESH/UPGRADE/--check/3 guards, 3 platforms), `phase2-verify.sh`, `toggle-claude-mem.sh`, `generate-service-claudes.sh`, `generate-copilot-docs.sh`, `setup-plugins.sh`, `check-creative-work.sh`, `tdd-loop-check.sh` — all in `claude/scripts/` |
 | 🟡 **Auto-loaded** | Path-scoped rules — short do/don't lists per domain | When editing matching files | ~200-400 each |
 | 🔵 **On-demand** | Full domain docs — architecture, build, auth, database | When the task requires it | ~1-2K each |
 
@@ -255,6 +270,10 @@ The knowledge layer (`claude/*.md`) is the **single source of truth**. Each tool
        ▼           ▼               ▼
   Claude Code   GitHub Copilot   Any LLM
   ───────────   ──────────────   ───────
+**Model selection is enforced across both tools:**
+- **Claude Code** — agents declare their optimal model (`model: opus` in frontmatter). Research agents use the session model (faster/cheaper); review and security agents request Opus (correctness matters more than cost). Falls back to session model when unavailable.
+- **GitHub Copilot** — `copilot-instructions.md` enforces model selection via instructions: planning/review/architecture tasks **stop and warn** if the active model is a "mini"/"flash"/"lite" variant, requesting the user switch to the most capable model in the IDE model picker. Quick tasks (build, lint, test) run on any model.
+
   Full stack:   Instructions +   Bootstrap
   commands,     scoped rules,    prompt →
   hooks,        prompts,         generates
@@ -420,7 +439,7 @@ Not ready to share? Use **SOLO mode**: add `CLAUDE.md`, `claude/`, `.claude/`, `
 
 ## 🤝 Contributing
 
-PRs welcome! The most impactful contributions:
+🔄 **CI runs 5 checks on every PR** — ShellCheck on all scripts, portability lint (GNU-only pattern detector), documentation links (all .md cross-references), cross-platform validation (Linux / macOS / Windows — validate.sh + install --check), and integration tests (FRESH install, UPGRADE, --check mode, and 3 guard scenarios, all 3 platforms). All must pass to merge.
 
 | Area | Difficulty | Example |
 |:-----|:----------:|:--------|
