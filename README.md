@@ -80,13 +80,25 @@ That's exactly what this does. You teach it once — it remembers, enforces, and
 
 ### Step 1 — Install the template
 
+**Prerequisites:** `git`, `bash` ≥ 3.2, and **`jq`** (safety hooks and JS/TS discovery depend on it):
+
+```bash
+# Check if jq is installed — if not, install it first:
+jq --version || brew install jq        # macOS
+jq --version || sudo apt install jq    # Ubuntu/Debian
+jq --version || sudo dnf install jq    # Fedora/RHEL
+# Git Bash (Windows): jq is included. WSL: use the Linux command above.
+```
+
+Then install:
+
 ```bash
 git clone https://github.com/y-abs/claude-code-brain-bootstrap.git /tmp/brain
 bash /tmp/brain/install.sh your-repo/
 rm -rf /tmp/brain
 ```
 
-> 🔍 **Pre-flight check:** `bash /tmp/brain/install.sh --check` — verifies git, bash version, and `jq` before touching your repo. Runs in 1 second, no side effects.
+> 🔍 **Pre-flight check:** `bash /tmp/brain/install.sh --check` — verifies all prerequisites (git, bash, jq) before touching your repo. Runs in 1 second, no side effects.
 
 The install script **auto-detects** whether your repo is a fresh install or an upgrade:
 
@@ -177,8 +189,8 @@ Then the AI fills in what requires *reasoning*: architecture docs, domain knowle
 The bootstrap is **adaptive** — it runs 8 domain-detection greps and automatically escalates depth when it finds complexity:
 - **3+ domains detected** → domain rules and skills become mandatory (not optional)
 - **Monorepo detected** → per-service `CLAUDE.md` stubs auto-generated for every service
-- **SonarQube / Trivy / Helm detected** → project-specific commands auto-created
-- **Database / CI / frontend detected** → MCP server suggestions added to the report
+- **Security scanner / linter / CI detected** → project-specific commands and rules auto-created
+- **Docker / database / test framework detected** → matching build commands and domain docs populated
 
 > 💡 **Already have a Claude Code config?** Bootstrap detects it and enters **upgrade mode** — your domain docs, lessons, tasks, and customizations are preserved. Only missing pieces are added.
 
