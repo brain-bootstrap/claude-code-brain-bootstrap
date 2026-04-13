@@ -362,6 +362,8 @@ Same brain, different interface. Copilot gets its own optimized config:
 | `prompts/review-rules.prompt.md` | One-click code review against project rules |
 | `prompts/_template.prompt.md` | Template for new prompts |
 
+**Model selection enforcement:** Unlike Claude Code (which sets `model: opus` in agent frontmatter), Copilot has no API-level model control — the model is selected by the user in the IDE dropdown. Brain Bootstrap solves this via **instruction-level enforcement**: `copilot-instructions.md` instructs the AI to **stop and warn** if a "mini"/"flash"/"lite" model is active during planning/review/architecture tasks, requesting the user switch to the most capable model available. Quick tasks (build, lint, test, grep) run on any model. This guarantees the best available model is always used for high-reasoning work, without blocking simple tasks.
+
 ### 🧠 Memory — `claude/tasks/` (5 files)
 
 The AI's persistent memory across sessions:
