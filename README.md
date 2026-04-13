@@ -102,22 +102,71 @@ The install script **auto-detects** whether your repo is a fresh install or an u
 
 ### Step 2 — Let the AI configure itself
 
-**With Claude Code** (recommended — full automation):
+<details>
+<summary><strong>With Claude Code</strong> (recommended — full automation)</summary>
+
 ```
 /bootstrap
 ```
 
-**With GitHub Copilot** (no Claude Code needed):
-The `.github/` config works immediately after Step 1 — Copilot reads `copilot-instructions.md`, scoped instructions, and prompts automatically. For deeper setup, open Copilot Chat and paste:
-```
-Read claude/architecture.md and claude/build.md, then fill in the {{PLACEHOLDERS}} based on this repo's actual stack.
-```
+The `/bootstrap` command runs the discovery engine (`discover.sh` — pure bash, zero tokens), detects your entire stack, fills 70+ placeholders, then has the AI write architecture docs and domain knowledge specific to your codebase. Fully automated, ~5 minutes.
+</details>
 
-**With any other LLM** (Cursor, Windsurf, Aider, local models…):
-The `claude/*.md` knowledge docs are plain Markdown — any AI can read them. Point your tool at `claude/architecture.md` and `claude/build.md` and ask it to fill in the `{{PLACEHOLDERS}}` for your stack. Or run the discovery engine manually:
+<details>
+<summary><strong>With GitHub Copilot</strong> (no Claude Code needed)</summary>
+
+The `.github/` config works **immediately** after Step 1 — Copilot reads `copilot-instructions.md`, scoped instructions, and reusable prompts automatically. No extra setup needed for basic usage.
+
+For **full setup** (filling in the knowledge docs), run the discovery engine first, then ask Copilot to use the output:
+
 ```bash
+# Run discovery (pure bash, 2 seconds, zero tokens)
 bash your-repo/claude/scripts/discover.sh your-repo/ > your-repo/claude/tasks/.discovery.env
 ```
+
+Then open Copilot Chat and paste:
+
+```
+I just ran our stack discovery engine. The results are in claude/tasks/.discovery.env (KEY=VALUE format).
+
+Your tasks:
+1. Read claude/tasks/.discovery.env to learn my stack
+2. Read claude/architecture.md — replace every {{PLACEHOLDER}} with the real values from .discovery.env
+   (PROJECT_NAME, STACK, RUNTIME, PACKAGE_MANAGER, etc.)
+3. Read claude/build.md — replace every {{PLACEHOLDER}} with the real build/test/lint commands
+   from .discovery.env (BUILD_CMD_ALL, TEST_CMD_ALL, LINT_FIX_CMD, etc.)
+4. Read CLAUDE.md — replace {{PROJECT_NAME}} in the title
+5. List any remaining {{PLACEHOLDERS}} you couldn't fill so I can provide them manually
+```
+</details>
+
+<details>
+<summary><strong>With any other LLM</strong> (Cursor, Windsurf, Aider, local models…)</summary>
+
+The `claude/*.md` knowledge docs are plain Markdown — any AI can read them.
+
+**Option A — With discovery engine** (recommended):
+```bash
+# Run discovery (pure bash, 2 seconds, zero tokens)
+bash your-repo/claude/scripts/discover.sh your-repo/ > your-repo/claude/tasks/.discovery.env
+```
+Then tell your AI:
+```
+Read claude/tasks/.discovery.env (my detected stack). Then open claude/architecture.md and
+claude/build.md — replace every {{PLACEHOLDER}} with the matching values. The env file has
+all the answers: PROJECT_NAME, STACK, RUNTIME, PACKAGE_MANAGER, BUILD_CMD_ALL, TEST_CMD_ALL,
+LINT_FIX_CMD, FORMAT_CMD, DEV_CMD, etc. List any you can't fill.
+```
+
+**Option B — Without discovery** (AI figures it out):
+```
+Scan this repo's package.json / pyproject.toml / Cargo.toml / go.mod (whichever exists).
+Then open claude/architecture.md and claude/build.md — replace every {{PLACEHOLDER}} with
+the real values for this project. There are ~20 placeholders: PROJECT_NAME, STACK, RUNTIME,
+PACKAGE_MANAGER, BUILD_CMD_ALL, TEST_CMD_ALL, LINT_FIX_CMD, FORMAT_CMD, DEV_CMD, and more.
+Infer from the actual config files. List any you're unsure about.
+```
+</details>
 
 That's it. The discovery engine scans your repo in ~2 seconds — **pure bash, zero AI tokens** — and auto-detects your entire stack:
 
