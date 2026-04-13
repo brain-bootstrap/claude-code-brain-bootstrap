@@ -52,6 +52,7 @@ supports_unicode() {
 }
 
 # ─── Emoji symbols with graceful fallback ─────────────────────────
+# shellcheck disable=SC2034  # exported/consumed by scripts that source this file
 if supports_unicode; then
   PASS_SYM="✅"; FAIL_SYM="❌"; WARN_SYM="⚠️"
 else
