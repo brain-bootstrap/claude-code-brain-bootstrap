@@ -252,7 +252,7 @@ Brain replaces advisory text with real mechanisms:
 | 🔒 **Dangerous actions are blocked, not just discouraged** | Safety hooks intercept *before* execution — blocking dangerous commands before they run. 14 lifecycle hooks total across all events: bash scripts, deterministic, zero-token, unforgeable |
 | 🧠 **The AI never makes the same mistake twice** | `lessons.md` persists across sessions, compactions, restarts — read at every session start, impossible to skip |
 | 🔄 **Knowledge never goes stale** | Exit checklist catches drift every turn · `/maintain` audits all docs · self-maintenance rule fires on every knowledge edit |
-| ⚡ **One command replaces 15 min of prompt engineering** | `/review` runs a 10-point protocol · `/mr` generates descriptions · `/debug` traces root causes — 29 commands, pre-built, consistent |
+| ⚡ **One command replaces 15 min of prompt engineering** | `/review` runs a 10-point protocol · `/mr` generates descriptions · `/debug` traces root causes — 31 commands, pre-built, consistent |
 | 🔍 **Your entire stack understood in 2 seconds, zero tokens** | `discover.sh` — 25+ languages, 1100+ frameworks, 21 package managers — pure bash, runs before the AI even wakes up |
 | 🗺️ **Architecture visible to the AI at all times** | **graphify** knowledge graph — god nodes, community clusters, cross-module connections. PreToolUse hook makes the AI navigate by structure, not grep through every file |
 | 🤖 **Research doesn't eat your context window** | 5 subagents run in isolated contexts — explore 20+ files, review code, challenge plans — your main conversation stays clean |
@@ -291,7 +291,7 @@ Claude Code Brain is **100+ files** of structured configuration that live in you
 Your repo
 ├── 📋 CLAUDE.md                    ← Operating protocol (auto-loaded every conversation)
 ├── ⚙️ .claude/
-│   ├── commands/                   ← 29 slash commands (/build, /test, /review, /mr, /health...)
+│   ├── commands/                   ← 31 slash commands (/build, /test, /review, /mr, /health...)
 │   ├── hooks/                      ← 15 lifecycle hooks (safety, quality, recovery, audit)
 │   ├── agents/                     ← 5 AI subagents (research, reviewer, plan-challenger...)
 │   ├── skills/                     ← 11 skills (TDD, triage, root-cause, code review, semantic search...)
@@ -341,7 +341,7 @@ The system is designed to **minimize token cost** while maximizing context — y
 | Category | Count | Highlights |
 |:---------|:-----:|:-----------|
 | 📚 **Knowledge docs** | 13 | 8 domain docs (architecture, rules, build, CVE policy, terminal safety, MR templates, plugin config, decisions) · knowledge base guide · full reference guide · 3 worked domain examples |
-| ⚡ **Slash commands** | 29 | `/plan` `/build` `/test` `/lint` `/serve` `/review` `/mr` `/debug` `/diff` `/git` `/deps` `/docker` `/migrate` `/db` `/cleanup` `/maintain` `/checkpoint` `/resume` `/context` `/ticket` `/bootstrap` `/health` `/mcp` `/squad-plan` `/research` `/update-code-index` `/worktree` `/worktree-status` `/clean-worktrees` |
+| ⚡ **Slash commands** | 31 | `/plan` `/build` `/test` `/lint` `/serve` `/review` `/mr` `/debug` `/diff` `/git` `/deps` `/docker` `/migrate` `/db` `/cleanup` `/maintain` `/checkpoint` `/resume` `/context` `/ticket` `/bootstrap` `/health` `/status` `/ask` `/mcp` `/squad-plan` `/research` `/update-code-index` `/worktree` `/worktree-status` `/clean-worktrees` |
 | 🪝 **Lifecycle hooks** | 15 | Session recovery, config protection, terminal safety gate (3 profiles), commit quality, RTK token optimizer, batch formatting, exit checklist, compaction recovery, identity refresh, permission audit, test reminders |
 | 🤖 **AI subagents** | 5 | **research** (read-only exploration), **reviewer** (10-point MR review), **plan-challenger** (adversarial plan critique), **session-reviewer** (conversation pattern analysis), **security-auditor** (vulnerability scanning) — each declares its optimal model, falls back to session model for local/alternative providers |
 | 🎓 **Skills** | 11 | TDD discipline (auto-loads on test files), root-cause trace, changelog generation, session safety guards, cross-layer consistency check, **codebase-memory** (structural graph navigation), **cocoindex-code** (semantic vector search), **code-review-graph** (change risk analysis), **repo-recap** (release notes), **pr-triage** (PR audit), **issue-triage** (issue audit) |
@@ -520,7 +520,7 @@ Extending the Brain is simple — one file, one registration:
 
 Three worked examples in `claude/_examples/` — API domain, database domain, messaging domain.
 
-> 📚 **Full reference:** [claude/docs/DETAILED_GUIDE.md](claude/docs/DETAILED_GUIDE.md) — complete file inventory, architecture diagrams, all 29 commands, all 15 hooks, placeholder reference, stack-specific examples, FAQ.
+> 📚 **Full reference:** [claude/docs/DETAILED_GUIDE.md](claude/docs/DETAILED_GUIDE.md) — complete file inventory, architecture diagrams, all 31 commands, all 15 hooks, placeholder reference, stack-specific examples, FAQ.
 
 ---
 

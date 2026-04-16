@@ -172,6 +172,7 @@ COMMANDS=(
   serve migrate db context docker deps diff git
   cleanup maintain checkpoint resume bootstrap
   mcp squad-plan research update-code-index health
+  status ask
 )
 for cmd in "${COMMANDS[@]}"; do
   if [ -f ".claude/commands/$cmd.md" ]; then pass "/cmd: $cmd"; else fail "MISSING command: $cmd.md"; fi

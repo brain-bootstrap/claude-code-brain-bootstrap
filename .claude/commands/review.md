@@ -20,6 +20,8 @@ Read these files first:
 - `claude/architecture.md` (system context)
 - `claude/tasks/lessons.md` (past mistakes to avoid)
 
+**Step 0 — Lessons pre-scan:** Before running the checklist, scan `claude/tasks/lessons.md` for entries whose file paths, module names, or topic keywords overlap with the files in the diff. Extract matching lessons and prepend them as project-specific check items at the top of your review (e.g. "⚠️ Lesson: hooks must be executable — check .claude/hooks/*.sh"). These lessons represent real mistakes from this project that the standard 10-point protocol won't catch.
+
 Then execute the review protocol:
 
 1. **Ticket re-read** — If a ticket reference exists in the branch name, find and read it. Verify every scenario is addressed.

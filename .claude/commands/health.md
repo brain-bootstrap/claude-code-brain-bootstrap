@@ -20,5 +20,15 @@ Verify that the Claude Code configuration is healthy and complete.
    git ls-files | xargs grep -l 'BEGIN.*PRIVATE KEY\|password\s*=\s*["\x27][^"\x27]\{8,\}' 2>/dev/null | head -10
    ```
    Report any matches as ⚠️ warnings
-7. **Report** — summarize: ✅ healthy / ⚠️ warnings / ❌ problems with actionable fixes
+7. **MCP server binaries** — verify each server declared in `.mcp.json` has its binary in PATH:
+   ```bash
+   jq -r '.mcpServers | to_entries[] | "\(.key):\(.value.command)"' .mcp.json 2>/dev/null || echo "NO_MCP_JSON"
+   ```
+   For each `key:command` pair, run `command -v <command>` and report ✅/⚠️.
+   Known binary mapping for this project:
+   - `codebase-memory-mcp` → binary `codebase-memory-mcp`
+   - `cocoindex-code` → binary `ccc`
+   - `code-review-graph` → binary `uvx` (via uv/pipx runner)
+   Any missing binary means that MCP server is silently unavailable to Claude.
+8. **Report** — summarize: ✅ healthy / ⚠️ warnings / ❌ problems with actionable fixes
 

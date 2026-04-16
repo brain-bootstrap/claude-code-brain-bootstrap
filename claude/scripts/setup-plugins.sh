@@ -2,7 +2,11 @@
 # setup-plugins.sh — All-in-one plugin management for bootstrap
 # Handles: wait for bg install → disable claude-mem → kill worker → verify → update CLAUDE.md
 #          + graphify knowledge graph: pip install → skill install → git hooks
-# Usage: bash claude/scripts/setup-plugins.sh [project-dir]
+# Usage: bash claude/scripts/setup-plugins.sh [--lite] [--interactive|--non-interactive] [project-dir]
+#   --lite             Skip heavy plugins (graphify, cocoindex, code-review-graph ~1-3 GB total)
+#                      Installs only: rtk + codebase-memory-mcp + claude-mem (~2 min total)
+#   --interactive      Prompt yes/no for each plugin (default when stdin is a TTY)
+#   --non-interactive  Never prompt; respect SKIP_* env vars (default in CI / piped input)
 # Safe: exits cleanly if claude CLI not available (non-Claude Code environments)
 
 # ─── Source guard — prevent env corruption if sourced ─────────────
@@ -12,8 +16,35 @@ if [[ "${BASH_SOURCE[0]}" != "${0}" ]]; then
 fi
 
 set -eo pipefail
-PROJECT_DIR="${1:-.}"
+
+# ─── Argument parsing ──────────────────────────────────────────────
+LITE_MODE=""
+INTERACTIVE_FLAG=""   # "", "interactive", or "non-interactive"
+PROJECT_DIR=""
+
+for arg in "$@"; do
+  case "$arg" in
+    --lite)             LITE_MODE=1 ;;
+    --interactive)      INTERACTIVE_FLAG="interactive" ;;
+    --non-interactive)  INTERACTIVE_FLAG="non-interactive" ;;
+    -*)                 echo "Unknown flag: $arg (valid: --lite --interactive --non-interactive)" >&2; exit 1 ;;
+    *)                  PROJECT_DIR="$arg" ;;
+  esac
+done
+PROJECT_DIR="${PROJECT_DIR:-.}"
 cd "$PROJECT_DIR"
+
+# ─── Interactive mode detection ────────────────────────────────────
+# Default: interactive when stdin is a TTY and not in CI; non-interactive otherwise.
+if [ "$INTERACTIVE_FLAG" = "interactive" ]; then
+  INTERACTIVE_MODE=1
+elif [ "$INTERACTIVE_FLAG" = "non-interactive" ]; then
+  INTERACTIVE_MODE=""
+elif [ -t 0 ] && [ -z "${CI:-}" ]; then
+  INTERACTIVE_MODE=1
+else
+  INTERACTIVE_MODE=""
+fi
 
 # ─── Plugin opt-out — set any of these before running to skip that plugin ──
 # export SKIP_CLAUDE_MEM=1   # Skip claude-mem (requires claude CLI)
@@ -21,12 +52,82 @@ cd "$PROJECT_DIR"
 # export SKIP_RTK=1          # Skip rtk command optimizer (requires cargo)
 # export SKIP_COCOINDEX=1    # Recommended for slow networks (~1 GB download)
 # export SKIP_CRG=1          # Skip code-review-graph (Python 3.10+)
+# export SKIP_CBM=1          # Skip codebase-memory-mcp (C binary)
 SKIP_CLAUDE_MEM="${SKIP_CLAUDE_MEM:-}"
 SKIP_GRAPHIFY="${SKIP_GRAPHIFY:-}"
 SKIP_RTK="${SKIP_RTK:-}"
 SKIP_COCOINDEX="${SKIP_COCOINDEX:-}"
 SKIP_CRG="${SKIP_CRG:-}"
+SKIP_CBM="${SKIP_CBM:-}"
 
+# ─── --lite auto-skips heavy plugins ───────────────────────────────
+if [ -n "$LITE_MODE" ]; then
+  echo "⚡ Lite mode — skipping heavy plugins (graphify, cocoindex, code-review-graph)"
+  SKIP_GRAPHIFY=1
+  SKIP_COCOINDEX=1
+  SKIP_CRG=1
+fi
+
+# ─── ask_plugin — interactive yes/no prompt with full context ──────
+# Usage: ask_plugin SKIP_VAR "Plugin Name" TIER INSTALL_TIME "what it does" "manual install later"
+# TIER: RECOMMENDED | OPTIONAL | HEAVY
+# Sets SKIP_VAR=1 if the user answers no.
+ask_plugin() {
+  local var_name="$1"
+  local plugin_name="$2"
+  local tier="$3"
+  local install_time="$4"
+  local description="$5"
+  local manual_later="$6"
+
+  # If already opted out via env var, skip the prompt
+  local current_val
+  current_val="$(eval echo "\${$var_name:-}")"
+  if [ -n "$current_val" ]; then
+    return 0
+  fi
+
+  echo ""
+  echo "  ┌─────────────────────────────────────────────────────────"
+  echo "  │ 🔌 $plugin_name"
+  echo "  │"
+  echo "  │ $description"
+  echo "  │"
+  case "$tier" in
+    RECOMMENDED) echo "  │ 📋 Recommendation : ✅ RECOMMENDED — core productivity tool" ;;
+    OPTIONAL)    echo "  │ 📋 Recommendation : 💡 OPTIONAL — useful but not essential" ;;
+    HEAVY)       echo "  │ 📋 Recommendation : ⚠️  HEAVY — large download, skip on slow networks" ;;
+  esac
+  echo "  │ ⏱️  Install time   : $install_time"
+  echo "  │"
+  echo "  │ 📌 Skip now & install later:"
+  echo "  │    $manual_later"
+  echo "  └─────────────────────────────────────────────────────────"
+
+  local answer
+  printf "  Install %s? [Y/n] " "$plugin_name"
+  read -r answer </dev/tty
+  case "$answer" in
+    [Nn]*) eval "$var_name=1"; echo "  ⏭️  $plugin_name skipped — you can install later with the command above" ;;
+    *)     echo "  ✅ $plugin_name will be installed" ;;
+  esac
+  echo ""
+}
+
+
+# ─── Interactive mode banner ───────────────────────────────────────
+if [ -n "$INTERACTIVE_MODE" ]; then
+  echo ""
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  echo "  🔌 Plugin Setup — Interactive Mode"
+  if [ -n "$LITE_MODE" ]; then
+    echo "  ⚡ Lite mode: graphify, cocoindex, and code-review-graph are pre-skipped"
+  fi
+  echo "  For each plugin you'll see: what it does, recommendation,"
+  echo "  estimated install time, and how to install it later."
+  echo "  Press Enter or type Y to install. Type N to skip."
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+fi
 
 # ─── Portable helpers (sed_inplace, safe_pgrep, platform detection)
 # shellcheck disable=SC1091
@@ -35,6 +136,13 @@ source "$(dirname "$0")/_platform.sh"
 # ═════════════════════════════════════════════════════════════════
 # SECTION 1: claude-mem (Claude Code plugin)
 # ═════════════════════════════════════════════════════════════════
+
+if [ -n "$INTERACTIVE_MODE" ]; then
+  ask_plugin SKIP_CLAUDE_MEM "claude-mem" RECOMMENDED "~30 sec" \
+    "Persistent cross-session memory (SQLite + ChromaDB). Remembers what Claude learns across sessions.
+  Disabled by default after install (quota protection — re-enable with: bash claude/scripts/toggle-claude-mem.sh on)." \
+    "claude plugin install claude-mem@thedotmack && claude plugin disable claude-mem@thedotmack"
+fi
 
 if [ -n "$SKIP_CLAUDE_MEM" ]; then
   echo "⏭️  claude-mem skipped (SKIP_CLAUDE_MEM set)"
@@ -96,6 +204,13 @@ fi
 # ═════════════════════════════════════════════════════════════════
 
 echo ""
+if [ -n "$INTERACTIVE_MODE" ] && [ -z "$LITE_MODE" ]; then
+  ask_plugin SKIP_GRAPHIFY "graphify" HEAVY "~3-5 min (first run)" \
+    "Knowledge graph over your codebase — reveals god nodes, community structure, and hidden connections.
+  Installs a /graphify slash command. Git hooks auto-rebuild the graph on every commit." \
+    "pip install graphifyy && graphify install && graphify hook install"
+fi
+
 if [ -n "$SKIP_GRAPHIFY" ]; then
   echo "⏭️  graphify skipped (SKIP_GRAPHIFY set)"
   GRAPHIFY_STATUS="skipped (opt-out)"
@@ -168,6 +283,13 @@ fi  # end SKIP_GRAPHIFY
 # ═════════════════════════════════════════════════════════════════
 
 echo ""
+if [ -n "$INTERACTIVE_MODE" ]; then
+  ask_plugin SKIP_RTK "rtk" RECOMMENDED "~1-2 min (compiles from source, needs cargo)" \
+    "Token optimizer — transparently rewrites Claude's bash commands for 60-90% output token savings.
+  No-op if absent. Requires Rust/cargo. Hook is already registered in .claude/settings.json." \
+    "cargo install rtk"
+fi
+
 if [ -n "$SKIP_RTK" ]; then
   echo "⏭️  rtk skipped (SKIP_RTK set)"
   RTK_STATUS="skipped (opt-out)"
@@ -218,6 +340,18 @@ echo "  ✅ rtk: ${RTK_STATUS:-not installed}"
 # ═════════════════════════════════════════════════════════════════
 
 echo ""
+if [ -n "$INTERACTIVE_MODE" ]; then
+  ask_plugin SKIP_CBM "codebase-memory-mcp" RECOMMENDED "~10 sec" \
+    "Live structural graph of your codebase — 14 MCP tools for call tracing, blast radius detection,
+  dead code hunting, and architecture queries. Uses 120x fewer tokens than file exploration." \
+    "curl -fsSL https://raw.githubusercontent.com/DeusData/codebase-memory-mcp/main/install.sh | bash -s -- --skip-config"
+fi
+
+if [ -n "$SKIP_CBM" ]; then
+  echo "⏭️  codebase-memory-mcp skipped (SKIP_CBM set)"
+  CBM_STATUS="skipped (opt-out)"
+else
+
 echo "🔌 Plugin Setup — codebase-memory-mcp (structural graph)..."
 
 if command -v codebase-memory-mcp &>/dev/null; then
@@ -251,11 +385,20 @@ fi
 
 echo "  ✅ codebase-memory-mcp: $CBM_STATUS"
 
+fi  # end SKIP_CBM
+
 # ═════════════════════════════════════════════════════════════════
 # SECTION 5: cocoindex-code (semantic vector search — Python 3.11+)
 # ═════════════════════════════════════════════════════════════════
 
 echo ""
+if [ -n "$INTERACTIVE_MODE" ] && [ -z "$LITE_MODE" ]; then
+  ask_plugin SKIP_COCOINDEX "cocoindex-code" HEAVY "~5-15 min (~1 GB — sentence-transformers + torch)" \
+    "Semantic vector search — find code by meaning, not exact names. No API key needed (local embeddings).
+  Run 'ccc index' to build the initial index, then search with mcp__cocoindex-code__search." \
+    "pip install 'cocoindex-code[full]'"
+fi
+
 if [ -n "$SKIP_COCOINDEX" ]; then
   echo "⏭️  cocoindex-code skipped (SKIP_COCOINDEX set)"
   COCO_STATUS="skipped (opt-out)"
@@ -364,6 +507,13 @@ echo "  ✅ cocoindex-code: ${COCO_STATUS:-skipped}"
 # ═════════════════════════════════════════════════════════════════
 
 echo ""
+if [ -n "$INTERACTIVE_MODE" ] && [ -z "$LITE_MODE" ]; then
+  ask_plugin SKIP_CRG "code-review-graph" HEAVY "~3-5 min" \
+    "Change risk analysis — risk score 0-100, blast radius, breaking changes before any PR.
+  29 MCP tools. Git post-commit hook for incremental re-index. Pre-PR safety gate." \
+    "pip install 'code-review-graph[communities]'"
+fi
+
 if [ -n "$SKIP_CRG" ]; then
   echo "⏭️  code-review-graph skipped (SKIP_CRG set)"
   CRG_STATUS="skipped (opt-out)"

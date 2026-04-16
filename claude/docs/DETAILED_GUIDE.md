@@ -88,7 +88,7 @@ Here's the mental model:
             "Here's everything we've learned together"
 ```
 
-**29 slash commands. 15 lifecycle hooks. 5 AI subagents. 11 skills. 2 tools. 120 validation checks. 8 domain-detection greps. Zero setup friction.**
+**31 slash commands. 15 lifecycle hooks. 5 AI subagents. 11 skills. 2 tools. 120 validation checks. 8 domain-detection greps. Zero setup friction.**
 
 > 💡 Battle-tested. Works with **any language, any framework, any repo**.
 
@@ -161,7 +161,7 @@ Your repo
 ├── ⚙️ .claude/
 │   ├── settings.json               ← Permissions, hooks, env vars
 │   ├── settings.local.json.example ← Personal overrides template
-│   ├── commands/  (29 files)       ← /build, /test, /review, /mr, /worktree...
+│   ├── commands/  (31 files)       ← /build, /test, /review, /mr, /worktree...
 │   ├── hooks/     (15 files)       ← Safety, quality, recovery, TDD loop
 │   ├── agents/    (5 files)        ← research, reviewer, plan-challenger, session-reviewer, security-auditor
 │   ├── skills/    (11 files)       ← TDD, triage, root-cause, code review, semantic search...
@@ -278,7 +278,9 @@ Every command you'll reach for, pre-built and ready:
 | `/squad-plan` | Parallel workstream plan | Claude Squad ACTION_PLAN.md |
 | `/research` | Research questions + knowledge | Targeted exploration |
 | `/update-code-index` | Scan exports → CODE_INDEX.md | Check before writing new functions |
-| `/health` | Config health check | CLAUDE.md, settings, hooks, secrets |
+| `/health` | Config health check | CLAUDE.md, settings, hooks, secrets, MCP binaries |
+| `/status` | One-glance project status | Budget, placeholders, plugins, hooks, graph |
+| `/ask` | Route codebase question to right tool | graph · semantic search · risk analysis |
 | `/worktree` | Create isolated git worktree | Parallel feature development |
 | `/worktree-status` | Show all worktrees with branch + status | At-a-glance multi-branch view |
 | `/clean-worktrees` | Remove worktrees for merged branches | `--dry-run` to preview first |
@@ -1283,7 +1285,7 @@ Brain replaces advisory text with real mechanisms:
 | Metric | Count |
 |:-------|------:|
 | 📂 Files | 100+ |
-| ⚡ Slash commands | 29 |
+| ⚡ Slash commands | 31 |
 | 🪝 Lifecycle hooks | 15 |
 | 📏 Golden rules | 24 |
 | 🎓 Skills | 11 |

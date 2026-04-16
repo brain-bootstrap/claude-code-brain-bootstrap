@@ -157,7 +157,9 @@ Task about [domain]?   → 📚 Read claude/[domain].md
 | `/squad-plan` | 🧑‍🤝‍🧑 Generate parallel workstream plan for Claude Squad | ❌ Manual |
 | `/research` | 🔍 Generate research questions + gather knowledge | ❌ Manual |
 | `/update-code-index` | 📋 Scan exports → generate CODE_INDEX.md; check before writing new functions | ❌ Manual |
-| `/health` | 🏥 Config health check — CLAUDE.md, settings, hooks, rules frontmatter, secrets scan | ❌ Manual |
+| `/health` | 🏥 Config health check — CLAUDE.md, settings, hooks, rules frontmatter, secrets scan, MCP binaries | ❌ Manual |
+| `/status` | 📊 One-glance project status — budget, placeholders, plugins, hooks, knowledge graph | ❌ Manual |
+| `/ask` | 🔀 Route codebase question to right tool — graph · semantic search · risk analysis | ❌ Manual |
 | `/worktree` | 🌿 Create git worktree for isolated parallel development | ❌ Manual |
 | `/worktree-status` | 📊 Show all worktrees with branch, dirty/clean status, and last commit | ❌ Manual |
 | `/clean-worktrees` | 🧹 Remove all worktrees for merged branches (`--dry-run` to preview) | ❌ Manual |

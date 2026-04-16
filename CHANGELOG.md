@@ -14,20 +14,28 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - **cocoindex-code plugin** — semantic vector search via `mcp__cocoindex-code__search`. Find code by meaning, not exact names. Requires Python 3.11+. (~1 GB first install for local embeddings.)
 - **codebase-memory-mcp plugin** — live structural graph with 14 MCP tools. `trace_path`, `detect_changes`, `get_architecture` — 120× fewer tokens than file exploration.
 - **SKILL.md files** for all three new plugins — decision matrices, gotchas, pre-PR workflows.
-- **Plugin opt-out env vars** — `SKIP_CLAUDE_MEM`, `SKIP_GRAPHIFY`, `SKIP_RTK`, `SKIP_COCOINDEX`, `SKIP_CRG` in `setup-plugins.sh`.
+- **Plugin opt-out env vars** — `SKIP_CLAUDE_MEM`, `SKIP_GRAPHIFY`, `SKIP_RTK`, `SKIP_COCOINDEX`, `SKIP_CRG`, `SKIP_CBM` in `setup-plugins.sh`.
 - **MCP primer** in `DETAILED_GUIDE.md` — explains MCP for first-time users (mental model, tool naming, `.mcp.json` anatomy, graceful degradation).
 - **jq absence warning** in `session-start.sh` — surfaces visibly when safety hooks are silently inactive.
 - **Post-bootstrap `/health` prompt** — `/bootstrap` now directs users to run `/health` after setup.
 - **Worktree commands documented** — `/worktree`, `/worktree-status`, `/clean-worktrees` now appear in all documentation tables.
 - **Triage skills documented** — `repo-recap`, `pr-triage`, `issue-triage` now appear in all documentation tables.
 - **`CHANGELOG.md`** — this file, tracking changes from v0.0.1 onward.
+- **`/status` command** — one-glance project status dashboard: CLAUDE.md budget, unfilled placeholders, lessons size, hook executability, plugin states (rtk/cbm/ccc/crg/graphify/claude-mem), jq, knowledge graph, MCP servers. At-a-glance ✅/⚠️/❌ per category.
+- **`/ask` command** — codebase question router: automatically routes architecture/flow questions to codebase-memory-mcp + graphify, find/search to cocoindex, impact/blast-radius to code-review-graph.
+- **`--lite` mode** for `setup-plugins.sh` — skips heavy plugins (graphify, cocoindex, code-review-graph ~1–3 GB total). Installs only rtk + codebase-memory-mcp + claude-mem (~2 min total).
+- **Interactive plugin install** — when running from a TTY, `setup-plugins.sh` prompts yes/no for each plugin with recommendation tier (RECOMMENDED/OPTIONAL/HEAVY), estimated time, and manual install instructions. Non-interactive in CI.
+- **`SKIP_CBM` env var** — opt-out for codebase-memory-mcp (Section 4, previously had no skip guard).
+- **Bootstrap focus modes** — `/bootstrap architecture`, `/bootstrap plugins`, `/bootstrap validate` for targeted re-runs.
+- **Lessons-driven review** — `/review` now reads `lessons.md` before the 10-point checklist and surfaces project-specific patterns relevant to the diff.
+- **MCP server binary validation** — `/health` now verifies each server in `.mcp.json` has its binary in PATH (with known mapping: cocoindex→`ccc`, code-review-graph→`uvx`).
 
 ### Changed
 - **`tdd-loop-check.sh` moved** from `claude/scripts/` → `.claude/hooks/` for consistency with all other hooks.
-- **`setup-plugins.sh`** — removed `-q` flag from cocoindex install (users see download progress for ~1 GB install).
+- **`setup-plugins.sh`** — removed `-q` flag from cocoindex install (users see download progress for ~1 GB install); added `--lite`/`--interactive`/`--non-interactive` flags; added `ask_plugin()` interactive prompt function.
 - **README** — "Get Started in 5 Minutes" → "Get Started in 5 Minutes (+ ~15 min for full plugin setup)".
-- **Command/skill/hook counts** synced to reality: 29 commands (was 26), 11 skills (was 5/8), 15 hooks (was 12/14).
-- **DETAILED_GUIDE.md** — hooks table updated to 15 entries; skills table updated to 11 entries; all 29 commands listed.
+- **Command/skill/hook counts** synced to reality: 31 commands (was 26), 11 skills (was 5/8), 15 hooks (was 12/14).
+- **DETAILED_GUIDE.md** — hooks table updated to 15 entries; skills table updated to 11 entries; all 31 commands listed.
 
 ### Fixed
 - **`/review` and `/mr`** — removed `disable-model-invocation: true` from both. The flag prevented the model from processing the command body, silently breaking the two most value-critical commands.
