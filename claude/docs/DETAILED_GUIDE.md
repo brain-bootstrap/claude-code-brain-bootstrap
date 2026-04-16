@@ -161,10 +161,10 @@ Your repo
 ├── ⚙️ .claude/
 │   ├── settings.json               ← Permissions, hooks, env vars
 │   ├── settings.local.json.example ← Personal overrides template
-│   ├── commands/  (26 files)       ← /build, /test, /review, /mr...
-│   ├── hooks/     (14 files)       ← Safety, quality, recovery
+│   ├── commands/  (29 files)       ← /build, /test, /review, /mr, /worktree...
+│   ├── hooks/     (15 files)       ← Safety, quality, recovery, TDD loop
 │   ├── agents/    (5 files)        ← research, reviewer, plan-challenger, session-reviewer, security-auditor
-│   ├── skills/    (5 files)        ← TDD, root-cause, changelog, careful, cross-layer
+│   ├── skills/    (11 files)       ← TDD, triage, root-cause, code review, semantic search...
 │   └── rules/     (13 files)       ← Path-scoped auto-loading rules
 │
 ├── 📚 claude/
@@ -279,10 +279,13 @@ Every command you'll reach for, pre-built and ready:
 | `/research` | Research questions + knowledge | Targeted exploration |
 | `/update-code-index` | Scan exports → CODE_INDEX.md | Check before writing new functions |
 | `/health` | Config health check | CLAUDE.md, settings, hooks, secrets |
+| `/worktree` | Create isolated git worktree | Parallel feature development |
+| `/worktree-status` | Show all worktrees with branch + status | At-a-glance multi-branch view |
+| `/clean-worktrees` | Remove worktrees for merged branches | `--dry-run` to preview first |
 
 > 🎯 **Unused commands cost zero tokens** — they only load when invoked. Keep them all or delete what you don't need.
 
-### 🪝 Lifecycle Hooks — `.claude/hooks/` (14 files)
+### 🪝 Lifecycle Hooks — `.claude/hooks/` (15 files)
 
 These are your guardrails. They run automatically — no tokens, no AI reasoning, just deterministic protection:
 
@@ -292,11 +295,13 @@ These are your guardrails. They run automatically — no tokens, no AI reasoning
 | 💾 `on-compact.sh` | After compaction | Re-injects context (you never lose track) | 10s |
 | 📸 `pre-compact.sh` | Before compaction | Backs up transcript to session-logs | 10s |
 | 🔒 `config-protection.sh` | File write/edit | Blocks editing `biome.json`, `tsconfig.json`… | 5s |
+| ⚡ `rtk-rewrite.sh` | Bash command | Rewrites commands for 60-90% token savings (no-op without rtk) | 5s |
 | 🚧 `terminal-safety-gate.sh` | Bash command | Blocks pagers, `vi`, unbounded output | 5s |
 | 🧹 `pre-commit-quality.sh` | Bash command (git) | Catches `debugger`, secrets, `console.log` | 30s |
 | 💡 `suggest-compact.sh` | Any tool use | Nudges `/compact` when context is growing | 5s |
 | 🪪 `identity-reinjection.sh` | User prompt | Periodic identity refresh (prevents drift) | 5s |
 | 📓 `subagent-stop.sh` | Subagent completes | Logs completion + quality nudge | 5s |
+| 🔁 `tdd-loop-check.sh` | Session end | TDD enforcement — blocks yield if tests were skipped | 120s |
 | 🎨 `stop-batch-format.sh` | Session end | Auto-formats all edited files | 120s |
 | 📝 `edit-accumulator.sh` | After file edit | Tracks edited files for batch format | 5s |
 | 👋 `exit-nudge.sh` | Session end | 6-item exit checklist reminder | 5s |
@@ -317,7 +322,7 @@ Your AI has a team. Each subagent runs in an **isolated context window** — res
 | 📊 **session-reviewer** | Sonnet | Conversation pattern analysis — detects corrections, frustrations, recurring issues | 15 |
 | 🔐 **security-auditor** | Opus | Security scanning — secrets, auth gaps, injection, CVEs, DEPLOY/HOLD/BLOCK verdict | 20 |
 
-### 🎓 Skills — `.claude/skills/` (5 files)
+### 🎓 Skills — `.claude/skills/` (11 files)
 
 Skills are specialized knowledge that activates at the right moment:
 
@@ -328,6 +333,12 @@ Skills are specialized knowledge that activates at the right moment:
 | 📝 **Changelog** | Invocable | Generates release notes from git commits (runs in isolated context) |
 | ⚠️ **Careful** | Invocable | Activates safety guards — blocks dangerous commands during sensitive ops |
 | 🔍 **Cross-Layer Check** | Invocable | Verifies a symbol exists across all monorepo layers (bundled script) |
+| 🗺️ **codebase-memory** | Invocable | Live structural graph — trace call paths, blast radius, dead code (120× fewer tokens than file reads) |
+| 🔭 **cocoindex-code** | Invocable | Semantic vector search — find code by meaning, not exact names |
+| 🛡️ **code-review-graph** | Invocable | Change risk analysis — risk score 0–100, blast radius, breaking changes before any PR |
+| 📋 **repo-recap** | Invocable | Generate comprehensive release / activity summaries ready to share with the team |
+| 🔀 **pr-triage** | Invocable | Audit open PRs, deep review selected ones, draft and post review comments |
+| 🐛 **issue-triage** | Invocable | Audit open issues, categorize, detect duplicates, cross-reference PRs |
 
 ### 📏 Path-Scoped Rules — `.claude/rules/` (13 files)
 
@@ -378,7 +389,7 @@ The AI's persistent memory across sessions:
 | `.gitkeep` | Ensures directory is tracked in git |
 | `.gitignore` | Excludes temp files (counters, accumulators) from git tracking |
 
-### 🔧 Scripts — `claude/scripts/` (15 files)
+### 🔧 Scripts — `claude/scripts/` (14 files)
 
 The automation backbone — pure bash, zero token cost:
 
@@ -395,7 +406,6 @@ The automation backbone — pure bash, zero token cost:
 | 🔌 `toggle-claude-mem.sh` | Toggle claude-mem plugin on/off — saves API quota | instant |
 | 🔌 `setup-plugins.sh` | All-in-one bootstrap plugin management — install, disable, verify, update CLAUDE.md | ~5s |
 | ✅ `check-creative-work.sh` | Creative work gate check — architecture, placeholders, domain docs, IDE section | ~1s |
-| 🔁 `tdd-loop-check.sh` | TDD enforcement Stop hook — fails the loop if tests were skipped after code changes | ~1s |
 | 🖥️ `_platform.sh` | Portable shell helper library — detects `BRAIN_PLATFORM`, provides `sed_inplace()`, `safe_pgrep()`, `require_tool()`, `supports_unicode()` | instant |
 | 🔍 `portability-lint.sh` | GNU-only pattern detector — 9 checks: `head -n -N`, `grep -P`, `readlink -f`, `stat --format/stat -c`, `date -d`, bare `sed -i`, awk `\\s`/`\\w`, `< <()`. Extensible: add patterns to the top of the script | ~1s |
 | 🧪 `integration-test.sh` | 17 assertions: FRESH install (9), UPGRADE (4), --check mode (1), and 3 guard scenarios: self-bootstrap, subdirectory, non-existent dir. Runs on all 3 platforms in CI | ~10s |

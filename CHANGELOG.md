@@ -7,6 +7,63 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [Unreleased] — feat/code-review-graph-plugin
+
+### Added
+- **code-review-graph plugin** — 29 MCP tools for change risk analysis (risk score 0–100, blast radius, breaking changes). Pre-PR safety gate via `mcp__code-review-graph__detect_changes_tool`. Requires Python 3.10+.
+- **cocoindex-code plugin** — semantic vector search via `mcp__cocoindex-code__search`. Find code by meaning, not exact names. Requires Python 3.11+. (~1 GB first install for local embeddings.)
+- **codebase-memory-mcp plugin** — live structural graph with 14 MCP tools. `trace_path`, `detect_changes`, `get_architecture` — 120× fewer tokens than file exploration.
+- **SKILL.md files** for all three new plugins — decision matrices, gotchas, pre-PR workflows.
+- **Plugin opt-out env vars** — `SKIP_CLAUDE_MEM`, `SKIP_GRAPHIFY`, `SKIP_RTK`, `SKIP_COCOINDEX`, `SKIP_CRG` in `setup-plugins.sh`.
+- **MCP primer** in `DETAILED_GUIDE.md` — explains MCP for first-time users (mental model, tool naming, `.mcp.json` anatomy, graceful degradation).
+- **jq absence warning** in `session-start.sh` — surfaces visibly when safety hooks are silently inactive.
+- **Post-bootstrap `/health` prompt** — `/bootstrap` now directs users to run `/health` after setup.
+- **Worktree commands documented** — `/worktree`, `/worktree-status`, `/clean-worktrees` now appear in all documentation tables.
+- **Triage skills documented** — `repo-recap`, `pr-triage`, `issue-triage` now appear in all documentation tables.
+- **`CHANGELOG.md`** — this file, tracking changes from v0.0.1 onward.
+
+### Changed
+- **`tdd-loop-check.sh` moved** from `claude/scripts/` → `.claude/hooks/` for consistency with all other hooks.
+- **`setup-plugins.sh`** — removed `-q` flag from cocoindex install (users see download progress for ~1 GB install).
+- **README** — "Get Started in 5 Minutes" → "Get Started in 5 Minutes (+ ~15 min for full plugin setup)".
+- **Command/skill/hook counts** synced to reality: 29 commands (was 26), 11 skills (was 5/8), 15 hooks (was 12/14).
+- **DETAILED_GUIDE.md** — hooks table updated to 15 entries; skills table updated to 11 entries; all 29 commands listed.
+
+### Fixed
+- **`/review` and `/mr`** — removed `disable-model-invocation: true` from both. The flag prevented the model from processing the command body, silently breaking the two most value-critical commands.
+- **`/review` and `/mr` pre-fetch** — `$(git merge-base main HEAD)..HEAD` → `main...HEAD` to avoid `command_substitution` rejection.
+- **`health.md`** — added YAML frontmatter (`description`, `effort: low`, `allowed-tools`). Was the only command without metadata.
+- **`tdd-loop-check.sh` hook path** in `settings.json` — added `${CLAUDE_PROJECT_DIR:-.}` guard (was a bare relative path).
+- **`validate.sh`** — added `rtk-rewrite.sh` and `tdd-loop-check.sh` to hook check list; fixed placeholder fail message threshold.
+
+---
+
+## [0.4.0] — 2026-04-14 (PR #11)
+
+### 🔧 RTK — Command Token Optimizer
+
+### Added
+- **rtk plugin** — Rust binary that transparently rewrites Claude's bash commands for 60-90% output token savings. No-op when absent.
+- **`rtk-rewrite.sh`** PreToolUse hook — intercepts all Bash tool calls before execution.
+- `rtk gain` / `rtk discover` commands for ROI tracking and gap discovery.
+
+---
+
+## [0.3.0] — 2026-04-13 (PR #9, #10)
+
+### 🧠 Graphify + Three-Tool Memory Stack
+
+### Added
+- **graphify** knowledge graph — Python package + git post-commit hook for automatic AST re-indexing. Generates `GRAPH_REPORT.md` with god nodes, community structure, and surprising cross-module connections.
+- **claude-mem** plugin — persistent cross-session memory (SQLite + ChromaDB). Installed and disabled by default (quota protection: PostToolUse(*) fires after every tool call).
+- **`toggle-claude-mem.sh`** — enable/disable claude-mem with worker lifecycle management.
+- Three-tool memory stack: graphify (architecture snapshot) + codebase-memory-mcp (live structural) + claude-mem (temporal).
+
+### Fixed
+- Phantom files and attention issues impacting session context quality (#10).
+
+---
+
 ## [0.2.0] — 2026-04-13
 
 ### 🖥️ Cross-Platform Hardening — Linux, macOS, Windows
