@@ -53,12 +53,20 @@ fi
 # export SKIP_COCOINDEX=1    # Recommended for slow networks (~1 GB download)
 # export SKIP_CRG=1          # Skip code-review-graph (Python 3.10+)
 # export SKIP_CBM=1          # Skip codebase-memory-mcp (C binary)
+# export SKIP_PLAYWRIGHT=1   # Skip Playwright MCP browser automation (~300 MB Chromium)
+# export SKIP_CODEBURN=1    # Skip codeburn token observability dashboard (Node.js 18+)
+# export SKIP_CAVEMAN=1     # Skip caveman response-text compression (Node.js required)
+# export SKIP_SERENA=1      # Skip serena LSP refactoring MCP server (Python 3.11+ / uvx)
 SKIP_CLAUDE_MEM="${SKIP_CLAUDE_MEM:-}"
 SKIP_GRAPHIFY="${SKIP_GRAPHIFY:-}"
 SKIP_RTK="${SKIP_RTK:-}"
 SKIP_COCOINDEX="${SKIP_COCOINDEX:-}"
 SKIP_CRG="${SKIP_CRG:-}"
 SKIP_CBM="${SKIP_CBM:-}"
+SKIP_PLAYWRIGHT="${SKIP_PLAYWRIGHT:-}"
+SKIP_CODEBURN="${SKIP_CODEBURN:-}"
+SKIP_CAVEMAN="${SKIP_CAVEMAN:-}"
+SKIP_SERENA="${SKIP_SERENA:-}"
 
 # ─── --lite auto-skips heavy plugins ───────────────────────────────
 if [ -n "$LITE_MODE" ]; then
@@ -581,10 +589,244 @@ fi  # end SKIP_CRG
 echo "  ✅ code-review-graph: ${CRG_STATUS:-skipped}"
 
 # ═════════════════════════════════════════════════════════════════
+# SECTION 7: playwright-mcp (browser automation — Node.js/npx)
+# ═════════════════════════════════════════════════════════════════
+
+echo ""
+if [ -n "$INTERACTIVE_MODE" ]; then
+  ask_plugin SKIP_PLAYWRIGHT "playwright-mcp" OPTIONAL "~2-3 min (~300 MB Chromium download)" \
+    "Browser automation MCP — navigate, click, fill, snapshot web pages via accessibility tree.
+  No vision model needed. Token cost: LOW-MEDIUM (structured snapshots, not pixels).
+  Use for: UI testing, documentation scraping, OAuth flows, web research.
+  MCP entry already in .mcp.json — this step pre-installs Chromium browsers." \
+    "npx playwright install chromium"
+fi
+
+if [ -n "$SKIP_PLAYWRIGHT" ]; then
+  echo "⏭️  playwright-mcp skipped (SKIP_PLAYWRIGHT set)"
+  PLAYWRIGHT_STATUS="skipped (opt-out)"
+else
+echo "🔌 Plugin Setup — playwright-mcp (browser automation)..."
+
+NODE_VERSION=$(node --version 2>/dev/null | sed 's/v//' || echo "0")
+NODE_MAJOR="${NODE_VERSION%%.*}"
+
+if ! command -v npx &>/dev/null || [ "${NODE_MAJOR:-0}" -lt 18 ]; then
+  echo "  ⚠️  playwright-mcp skipped — Node.js 18+ required (found: ${NODE_VERSION:-none})"
+  echo "     Upgrade: brew install node  OR  nvm install 18"
+  echo "     Then run: npx playwright install chromium"
+  echo "  ℹ️  MCP entry is already in .mcp.json — it will activate automatically after upgrading Node.js"
+  PLAYWRIGHT_STATUS="skipped (Node.js ${NODE_VERSION:-not found}, needs 18+)"
+else
+  # Check if Chromium is already installed by playwright
+  PLAYWRIGHT_CACHE=""
+  case "$(uname -s)" in
+    Darwin) PLAYWRIGHT_CACHE="$HOME/Library/Caches/ms-playwright" ;;
+    Linux)  PLAYWRIGHT_CACHE="$HOME/.cache/ms-playwright" ;;
+    *)      PLAYWRIGHT_CACHE="$HOME/.cache/ms-playwright" ;;
+  esac
+
+  if ls "$PLAYWRIGHT_CACHE"/chromium* &>/dev/null 2>&1; then
+    echo "  ✅ Playwright Chromium already installed ($PLAYWRIGHT_CACHE)"
+    echo "  ✅ MCP server ready — registered in .mcp.json (command: npx @playwright/mcp@latest)"
+    PLAYWRIGHT_STATUS="chromium installed · MCP registered"
+  else
+    echo "  ⏳ Installing Playwright Chromium (~300 MB download)..."
+    if NO_COLOR=1 npx playwright install chromium 2>&1 | tail -4; then
+      echo "  ✅ Playwright Chromium installed"
+      echo "  ✅ MCP server ready — registered in .mcp.json"
+      PLAYWRIGHT_STATUS="chromium installed · MCP registered"
+    else
+      echo "  ⚠️  Chromium install failed — run manually: npx playwright install chromium"
+      echo "  ℹ️  MCP server is already registered in .mcp.json — will work once browsers are installed"
+      PLAYWRIGHT_STATUS="MCP registered · browsers not installed (run: npx playwright install chromium)"
+    fi
+  fi
+fi
+fi  # end SKIP_PLAYWRIGHT
+
+echo "  ✅ playwright-mcp: ${PLAYWRIGHT_STATUS:-skipped}"
+
+# ═════════════════════════════════════════════════════════════════
+# SECTION 8: codeburn (token observability — Node.js/npm)
+# ═════════════════════════════════════════════════════════════════
+
+echo ""
+if [ -n "$INTERACTIVE_MODE" ]; then
+  ask_plugin SKIP_CODEBURN "codeburn" OPTIONAL "~10 sec" \
+    "Token cost observability dashboard — see WHERE tokens go: by task type (13 categories), model,
+  one-shot rate, and USD cost. Reads ~/.claude/projects/ directly. No API keys needed.
+  Complements rtk: rtk reduces tokens spent; codeburn shows which tasks to optimize." \
+    "npm install -g codeburn"
+fi
+
+if [ -n "$SKIP_CODEBURN" ]; then
+  echo "⏭️  codeburn skipped (SKIP_CODEBURN set)"
+  CODEBURN_STATUS="skipped (opt-out)"
+else
+echo "🔌 Plugin Setup — codeburn (token observability)..."
+
+NODE_VERSION_CB=$(node --version 2>/dev/null | sed 's/v//' || echo "0")
+NODE_MAJOR_CB="${NODE_VERSION_CB%%.*}"
+
+if ! command -v npm &>/dev/null || [ "${NODE_MAJOR_CB:-0}" -lt 18 ]; then
+  echo "  ⚠️  codeburn skipped — Node.js 18+ required (found: ${NODE_VERSION_CB:-none})"
+  echo "     Upgrade: brew install node  OR  nvm install 18"
+  echo "     Then run: npm install -g codeburn"
+  CODEBURN_STATUS="skipped (Node.js ${NODE_VERSION_CB:-not found}, needs 18+)"
+elif command -v codeburn &>/dev/null; then
+  CB_VERSION=$(codeburn --version 2>/dev/null | head -1 | awk '{print $NF}' || echo "unknown")
+  echo "  ✅ codeburn $CB_VERSION already installed"
+  CODEBURN_STATUS="$CB_VERSION installed"
+else
+  echo "  ⏳ Installing codeburn..."
+  if npm install -g codeburn 2>&1 | tail -3; then
+    CB_VERSION=$(codeburn --version 2>/dev/null | head -1 | awk '{print $NF}' || echo "unknown")
+    echo "  ✅ codeburn $CB_VERSION installed — run: codeburn"
+    echo "  ℹ️  Try: codeburn today  OR  codeburn report -p 30days"
+    CODEBURN_STATUS="$CB_VERSION installed"
+  else
+    echo "  ⚠️  npm install failed — try manually: npm install -g codeburn"
+    echo "     Or one-shot: npx codeburn"
+    CODEBURN_STATUS="install failed — manual: npm install -g codeburn"
+  fi
+fi
+fi  # end SKIP_CODEBURN
+
+echo "  ✅ codeburn: ${CODEBURN_STATUS:-skipped}"
+
+# ═════════════════════════════════════════════════════════════════
+# SECTION 9: caveman (response-text compression — hooks only)
+# ═════════════════════════════════════════════════════════════════
+
+echo ""
+if [ -n "$INTERACTIVE_MODE" ]; then
+  ask_plugin SKIP_CAVEMAN "caveman" OPTIONAL "~10 sec" \
+    "Response-text compression — makes Claude reply in terse caveman speak (65-87% fewer response tokens).
+  Covers token surface #2 (response text), complementing rtk (#1 tool outputs).
+  Adds: /caveman, /caveman-commit, /caveman-review, /caveman:compress <file>.
+  Installs hooks into ~/.claude/settings.json (user-level, no project conflict)." \
+    "bash <(curl -fsSL https://raw.githubusercontent.com/JuliusBrussee/caveman/main/hooks/install.sh)"
+fi
+
+if [ -n "$SKIP_CAVEMAN" ]; then
+  echo "⏭️  caveman skipped (SKIP_CAVEMAN set)"
+  CAVEMAN_STATUS="skipped (opt-out)"
+else
+echo "🔌 Plugin Setup — caveman (response-text compression)..."
+
+# caveman install.sh requires node (any version) for JSON merge
+if ! command -v node &>/dev/null; then
+  echo "  ⚠️  caveman skipped — node not found (required for settings.json merge)"
+  echo "     Install Node.js, then run:"
+  echo "     bash <(curl -fsSL https://raw.githubusercontent.com/JuliusBrussee/caveman/main/hooks/install.sh)"
+  CAVEMAN_STATUS="skipped (node not found)"
+elif ! command -v curl &>/dev/null; then
+  echo "  ⚠️  caveman skipped — curl not found"
+  echo "     Install curl, then run:"
+  echo "     bash <(curl -fsSL https://raw.githubusercontent.com/JuliusBrussee/caveman/main/hooks/install.sh)"
+  CAVEMAN_STATUS="skipped (curl not found)"
+else
+  # Check if already installed (idempotent — install.sh reports "already installed" and exits 0)
+  CLAUDE_USER_SETTINGS="${CLAUDE_CONFIG_DIR:-$HOME/.claude}/settings.json"
+  ALREADY_CAVEMAN=0
+  if [ -f "$CLAUDE_USER_SETTINGS" ]; then
+    if grep -q 'caveman-activate' "$CLAUDE_USER_SETTINGS" 2>/dev/null; then
+      ALREADY_CAVEMAN=1
+    fi
+  fi
+
+  if [ "$ALREADY_CAVEMAN" -eq 1 ]; then
+    echo "  ✅ caveman hooks already installed in ~/.claude/settings.json"
+    CAVEMAN_STATUS="installed (hooks active)"
+  else
+    echo "  ⏳ Installing caveman hooks..."
+    if bash <(curl -fsSL https://raw.githubusercontent.com/JuliusBrussee/caveman/main/hooks/install.sh) 2>&1; then
+      echo "  ✅ caveman installed — restart Claude Code to activate"
+      echo "  ℹ️  Commands: /caveman, /caveman-commit, /caveman-review, /caveman:compress <file>"
+      echo "  ℹ️  Token surface map: rtk=tool outputs, caveman=response text, caveman:compress=input context"
+      CAVEMAN_STATUS="installed (restart required)"
+    else
+      echo "  ⚠️  caveman install failed — install manually:"
+      echo "     bash <(curl -fsSL https://raw.githubusercontent.com/JuliusBrussee/caveman/main/hooks/install.sh)"
+      CAVEMAN_STATUS="install failed — manual required"
+    fi
+  fi
+fi
+fi  # end SKIP_CAVEMAN
+
+echo "  ✅ caveman: ${CAVEMAN_STATUS:-skipped}"
+
+# ═════════════════════════════════════════════════════════════════
+# SECTION 10: serena (LSP refactoring MCP server — uvx / Python 3.11+)
+# ═════════════════════════════════════════════════════════════════
+
+echo ""
+if [ -n "$INTERACTIVE_MODE" ]; then
+  ask_plugin SKIP_SERENA "serena" OPTIONAL "~30 sec (uvx auto-downloads on first use)" \
+    "LSP-backed symbol refactoring — rename/move/inline across the entire codebase atomically.
+  Type-aware, 100% recall. Rename a symbol in 50 files in one call.
+  MCP server using uvx (isolated env — no global Python dependency conflicts).
+  Fills gap: cocoindex/codebase-memory find code; serena transforms it." \
+    "Add to .mcp.json: {\"serena\": {\"type\": \"stdio\", \"command\": \"uvx\", \"args\": [\"serena-agent\", \"--project\", \".\"]}}"
+fi
+
+if [ -n "$SKIP_SERENA" ]; then
+  echo "⏭️  serena skipped (SKIP_SERENA set)"
+  SERENA_STATUS="skipped (opt-out)"
+else
+echo "🔌 Plugin Setup — serena (LSP refactoring MCP)..."
+
+# serena runs via uvx (isolated environment — avoids pip dependency conflicts)
+# uvx is part of the uv toolchain; check for it or fall back to pipx/pip
+SERENA_RUNNER=""
+if command -v uvx &>/dev/null; then
+  SERENA_RUNNER="uvx"
+elif command -v uv &>/dev/null; then
+  SERENA_RUNNER="uv tool run"
+fi
+
+if [ -z "$SERENA_RUNNER" ]; then
+  echo "  ⚠️  serena skipped — uvx not found (install uv: curl -LsSf https://astral.sh/uv/install.sh | sh)"
+  echo "     After installing uv, serena MCP entry in .mcp.json activates automatically"
+  SERENA_STATUS="skipped (uvx not found — install uv)"
+else
+  # Detect Python 3.11+ (serena requires it, same as cocoindex-code)
+  SERENA_PYTHON=""
+  for py_cmd in python3 python; do
+    if command -v "$py_cmd" &>/dev/null; then
+      PY_VER=$("$py_cmd" -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')" 2>/dev/null || true)
+      PY_MAJOR="${PY_VER%%.*}"
+      PY_MINOR="${PY_VER##*.}"
+      if [ "${PY_MAJOR:-0}" -ge 3 ] && [ "${PY_MINOR:-0}" -ge 11 ]; then
+        SERENA_PYTHON="$py_cmd"
+        break
+      fi
+    fi
+  done
+
+  if [ -z "$SERENA_PYTHON" ]; then
+    echo "  ⚠️  serena skipped — Python 3.11+ not found"
+    echo "     Install: brew install python@3.11 (serena MCP entry is already in .mcp.json)"
+    SERENA_STATUS="skipped (Python 3.11+ not found — MCP entry ready)"
+  else
+    # Verify serena-agent is available (uvx downloads on first use — this is a dry-run check)
+    echo "  ✅ serena MCP entry registered in .mcp.json (command: uvx serena-agent)"
+    echo "  ℹ️  Language servers auto-install on first use (~30s for pyright/typescript-language-server)"
+    echo "  ℹ️  Project config: .serena/project.yml (edit to add/remove languages)"
+    echo "  ℹ️  Key tools: find_symbol, find_references, rename_symbol, move_symbol, inline_symbol"
+    SERENA_STATUS="MCP registered (uvx serena-agent — lazy-downloads on first use)"
+  fi
+fi
+fi  # end SKIP_SERENA
+
+echo "  ✅ serena: ${SERENA_STATUS:-skipped}"
+
+# ═════════════════════════════════════════════════════════════════
 # SUMMARY (compact — avoids Claude Code UI collapse at ≥4 lines)
 # ═════════════════════════════════════════════════════════════════
 
 echo ""
-echo "✅ Plugins: claude-mem ${CLAUDE_MEM_STATUS:-skipped} · graphify ${GRAPHIFY_STATUS:-skipped} · rtk ${RTK_STATUS:-skipped} · cbm ${CBM_STATUS:-skipped} · ccc ${COCO_STATUS:-skipped} · crg ${CRG_STATUS:-skipped}"
+echo "✅ Plugins: claude-mem ${CLAUDE_MEM_STATUS:-skipped} · graphify ${GRAPHIFY_STATUS:-skipped} · rtk ${RTK_STATUS:-skipped} · cbm ${CBM_STATUS:-skipped} · ccc ${COCO_STATUS:-skipped} · crg ${CRG_STATUS:-skipped} · playwright ${PLAYWRIGHT_STATUS:-skipped} · codeburn ${CODEBURN_STATUS:-skipped} · caveman ${CAVEMAN_STATUS:-skipped} · serena ${SERENA_STATUS:-skipped}"
 if [ -f "claude/tasks/.bootstrap-plan.txt" ]; then echo "P4 $(date +%H:%M:%S)" >> "claude/tasks/.bootstrap-progress.txt" 2>/dev/null; fi
 

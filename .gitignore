@@ -9,3 +9,6 @@ tasks/*
 
 # code-review-graph AST index (project-local SQLite, rebuilt from source)
 .code-review-graph/
+# serena LSP cache (project config .serena/project.yml is committed)
+.serena/cache/
+.serena/.cache/

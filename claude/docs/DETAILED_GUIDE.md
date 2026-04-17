@@ -88,7 +88,7 @@ Here's the mental model:
             "Here's everything we've learned together"
 ```
 
-**31 slash commands. 15 lifecycle hooks. 5 AI subagents. 11 skills. 2 tools. 120 validation checks. 8 domain-detection greps. Zero setup friction.**
+**31 slash commands. 16 lifecycle hooks. 5 AI subagents. 11 skills. 2 tools. 120 validation checks. 8 domain-detection greps. Zero setup friction.**
 
 > 💡 Battle-tested. Works with **any language, any framework, any repo**.
 
@@ -287,7 +287,7 @@ Every command you'll reach for, pre-built and ready:
 
 > 🎯 **Unused commands cost zero tokens** — they only load when invoked. Keep them all or delete what you don't need.
 
-### 🪝 Lifecycle Hooks — `.claude/hooks/` (15 files)
+### 🪝 Lifecycle Hooks — `.claude/hooks/` (16 files)
 
 These are your guardrails. They run automatically — no tokens, no AI reasoning, just deterministic protection:
 
@@ -1270,10 +1270,10 @@ Brain replaces advisory text with real mechanisms:
 
 | What you get | How it actually works |
 |:---|:---|
-| 🔒 **Dangerous actions are blocked, not just discouraged** | Safety hooks intercept *before* execution — blocking dangerous commands before they run. 15 lifecycle hooks total across all events: bash scripts, deterministic, zero-token, unforgeable |
+| 🔒 **Dangerous actions are blocked, not just discouraged** | Safety hooks intercept *before* execution — blocking dangerous commands before they run. 16 lifecycle hooks total across all events: bash scripts, deterministic, zero-token, unforgeable |
 | 🧠 **The AI never makes the same mistake twice** | `lessons.md` persists across sessions, compactions, restarts — read at every session start, impossible to skip |
 | 🔄 **Knowledge never goes stale** | Exit checklist catches drift every turn · `/maintain` audits all docs · self-maintenance rule fires on every knowledge edit |
-| ⚡ **One command replaces 15 min of prompt engineering** | `/review` runs a 10-point protocol · `/mr` generates descriptions · `/debug` traces root causes — 29 commands, pre-built, consistent |
+| ⚡ **One command replaces 15 min of prompt engineering** | `/review` runs a 10-point protocol · `/mr` generates descriptions · `/debug` traces root causes — 31 commands, pre-built, consistent |
 | 🔍 **Your entire stack understood in 2 seconds, zero tokens** | `discover.sh` — 25+ languages, 1100+ frameworks, 21 package managers — pure bash, runs before the AI even wakes up |
 | 🤖 **Research doesn't eat your context window** | 5 subagents run in isolated contexts — explore 20+ files, review code, challenge plans — your main conversation stays clean |
 | 🤝 **One brain, three AI tools** | Write knowledge once → Claude Code, GitHub Copilot, and any LLM all read it — switch tools without starting over |

@@ -21,6 +21,7 @@
 | structural query, call trace, blast radius, dead code, architecture live, codebase-memory | `claude/plugins.md` |
 | semantic search, find code by meaning, cocoindex, vector search | `claude/plugins.md` |
 | change risk, blast radius, breaking changes, pre-PR safety, risk score | `claude/plugins.md` |
+| browser automation, web testing, UI test, scraping, playwright, web research | `claude/plugins.md` |
 <!-- {{DOMAIN_LOOKUP_TABLE}} — Add rows for each domain in your project:
 | domain-keyword-1, domain-keyword-2 | `claude/your-domain.md` |
 -->
@@ -198,6 +199,14 @@ bash claude/scripts/toggle-claude-mem.sh status   # Check state
 **cocoindex-code** — semantic vector search (1 MCP tool: `search`). Auto-installed if Python 3.11+. `mcp__cocoindex-code__search`. Find code by meaning when you don't know exact names. See `claude/plugins.md`.
 
 **code-review-graph** — change risk analysis (29 MCP tools). Auto-installed if Python 3.10+. `mcp__code-review-graph__detect_changes_tool(base_branch="main")`. Pre-PR safety gate: risk score 0–100, blast radius, breaking changes. See `claude/plugins.md`.
+
+**playwright** — browser automation (MCP). Auto-installed if Node.js 18+. `mcp__playwright__browser_snapshot()` / `browser_navigate()` / `browser_click()`. UI testing, documentation scraping, OAuth flows. Token cost: LOW-MEDIUM. See `claude/plugins.md`.
+
+**codeburn** — token cost observability (CLI). Optional, Node.js 18+. `codeburn today` / `codeburn report -p 30days`. See WHERE tokens go by task type, model, one-shot rate, USD. Complements rtk: rtk saves tokens; codeburn shows where to optimize. See `claude/plugins.md`.
+
+**caveman** — response-text compression (hooks). Optional, Node.js required. Installs into `~/.claude/settings.json`. `/caveman` toggle (lite/full/ultra) · `/caveman:compress <file>` compresses always-loaded files once (46% avg savings per session). Covers token surface #2 (response) + #3 (input context). rtk=surface #1. See `claude/plugins.md`.
+
+**serena** — LSP symbol refactoring (MCP). Auto-registered if uvx + Python 3.11+. `mcp__serena__rename_symbol` / `find_references` / `move_symbol`. Atomic multi-file transforms — rename across 50 files in one call. vs cocoindex: semantic search; vs serena: symbol precision. See `claude/plugins.md`.
 
 ## graphify — Knowledge Graph
 

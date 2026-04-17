@@ -193,6 +193,13 @@ Agents declare their **optimal model** for best results — but gracefully fall 
 | `codebase-memory` | 🔵 Invocable | Manual — use before reading files for structural questions (`trace_path`, `detect_changes`, `get_architecture`) |
 | `cocoindex-code` | 🔵 Invocable | Manual — `/cocoindex-code` or `mcp__cocoindex-code__search` for semantic code discovery |
 | `code-review-graph` | 🔵 Invocable | Manual — run before any PR: `mcp__code-review-graph__detect_changes_tool(base_branch="main")` |
+| `playwright` | 🔵 Invocable | Manual — browser automation via MCP: navigate, snapshot, click, fill |
+| `brainstorming` | 🔵 Invocable | Auto — fires before new features/components; HARD-GATE: no code until design approved |
+| `writing-skills` | 🔵 Invocable | Manual — when creating or editing SKILL.md files; CSO and structure guidelines |
+| `subagent-driven-development` | 🔵 Invocable | Manual — after `/squad-plan`; dispatches subagents with two-stage review per task |
+| `receiving-code-review` | 🔵 Invocable | Auto — fires when receiving code review feedback; enforces technical rigor |
+| `codeburn` | 🔵 Invocable | Manual — `codeburn today` / `codeburn report` for token cost observability |
+| `serena` | 🔵 Invocable | Manual — LSP-backed rename/move/inline; use `mcp__serena__rename_symbol` etc. |
 
 ### 🪝 Hooks (`.claude/hooks/`)
 

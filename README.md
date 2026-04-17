@@ -249,7 +249,7 @@ Brain replaces advisory text with real mechanisms:
 
 | What you get | How it actually works |
 |:---|:---|
-| 🔒 **Dangerous actions are blocked, not just discouraged** | Safety hooks intercept *before* execution — blocking dangerous commands before they run. 14 lifecycle hooks total across all events: bash scripts, deterministic, zero-token, unforgeable |
+| 🔒 **Dangerous actions are blocked, not just discouraged** | Safety hooks intercept *before* execution — blocking dangerous commands before they run. 16 lifecycle hooks total across all events: bash scripts, deterministic, zero-token, unforgeable |
 | 🧠 **The AI never makes the same mistake twice** | `lessons.md` persists across sessions, compactions, restarts — read at every session start, impossible to skip |
 | 🔄 **Knowledge never goes stale** | Exit checklist catches drift every turn · `/maintain` audits all docs · self-maintenance rule fires on every knowledge edit |
 | ⚡ **One command replaces 15 min of prompt engineering** | `/review` runs a 10-point protocol · `/mr` generates descriptions · `/debug` traces root causes — 31 commands, pre-built, consistent |
@@ -292,7 +292,7 @@ Your repo
 ├── 📋 CLAUDE.md                    ← Operating protocol (auto-loaded every conversation)
 ├── ⚙️ .claude/
 │   ├── commands/                   ← 31 slash commands (/build, /test, /review, /mr, /health...)
-│   ├── hooks/                      ← 15 lifecycle hooks (safety, quality, recovery, audit)
+│   ├── hooks/                      ← 16 lifecycle hooks (safety, quality, recovery, audit)
 │   ├── agents/                     ← 5 AI subagents (research, reviewer, plan-challenger...)
 │   ├── skills/                     ← 11 skills (TDD, triage, root-cause, code review, semantic search...)
 │   ├── rules/                      ← 13 path-scoped rules (auto-load per file type)
@@ -419,7 +419,7 @@ Security isn't one mechanism — it's **two layers** working together:
 
 ### 🪝 Layer 2: Hooks — What Gets Intercepted at Runtime
 
-14 lifecycle hooks add runtime guardrails — deterministic bash scripts, zero tokens, zero AI reasoning:
+16 lifecycle hooks add runtime guardrails — deterministic bash scripts, zero tokens, zero AI reasoning:
 
 | Hook | What it prevents |
 |:-----|:----------------|
@@ -432,7 +432,7 @@ Security isn't one mechanism — it's **two layers** working together:
 
 Plus 8 more hooks for identity refresh, permission audit, subagent logging, exit checklist enforcement, and context budget management.
 
-> 📚 **Full hook reference:** [claude/docs/DETAILED_GUIDE.md](claude/docs/DETAILED_GUIDE.md#-lifecycle-hooks--claudehooks-14-files) — all 14 hooks with triggers, timeouts, and detailed descriptions.
+> 📚 **Full hook reference:** [claude/docs/DETAILED_GUIDE.md](claude/docs/DETAILED_GUIDE.md#-lifecycle-hooks--claudehooks-16-files) — all 16 hooks with triggers, timeouts, and detailed descriptions.
 
 ---
 
