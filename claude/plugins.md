@@ -4,7 +4,7 @@
 
 ## Overview
 
-The bootstrap installs and configures a **five-tool stack** — each tool occupies a distinct, non-overlapping niche. Together they cover every axis of codebase intelligence:
+The bootstrap installs and configures a **six-tool stack** — each tool occupies a distinct, non-overlapping niche. Together they cover every axis of codebase intelligence:
 
 | Tool | Axis | Default State | Token Impact |
 |------|------|:------------:|:------------:|
@@ -14,6 +14,10 @@ The bootstrap installs and configures a **five-tool stack** — each tool occupi
 | **codebase-memory-mcp** | 🔍 **Live structural graph** — 14 MCP tools: call paths, blast radius, dead code (C binary, zero deps) | ✅ **Auto-installed** via curl | **120× fewer tokens** vs file exploration |
 | **cocoindex-code** | 🔎 **Semantic search** — find code by meaning via local vector embeddings (no API key) | ✅ **Auto-installed** if Python 3.11+ | Finds what grep/AST tools miss |
 | **code-review-graph** | 🔴 **Change risk analysis** — blast radius + risk score 0–100 + breaking changes from git diffs (29 MCP tools) | ✅ **Auto-installed** if Python 3.10+ | Pre-PR safety gate — catches cascading breakage |
+| **playwright** | 🌐 **Browser automation** — navigate, click, fill, snapshot web pages via accessibility tree (no vision model) | ✅ **Auto-installed** if Node.js 18+ | LOW-MEDIUM — structured snapshots, not pixel images |
+| **codeburn** | 📊 **Token observability** — cost breakdown by task type, model, one-shot rate, USD; reads `~/.claude/projects/` directly | ✅ **Optional CLI** (run on demand) | Zero — reads session files, no API calls |
+| **caveman** | 🗣️ **Response-text compression** — terse Claude replies (65-87% savings) + `/caveman:compress` for input context files (46% avg) | ✅ **Optional** (hooks into `~/.claude/settings.json`) | **Negative** — reduces response tokens generated |
+| **serena** | 🔧 **Symbol-level refactoring** — LSP-backed rename/move/inline across the entire codebase atomically | ✅ **Auto-registered** if uvx + Python 3.11+ | Low — on-demand per MCP call |
 
 **The complete picture — zero overlap, full coverage:**
 
@@ -26,8 +30,15 @@ Question                                    Tool                         Mechani
 "Is this PR safe to ship?"                  code-review-graph            detect_changes_tool() — risk 0–100
 "What did I do last Tuesday?"               claude-mem                   /mem-search
 "Why was JWT chosen over sessions?"         obsidian-mind (optional)     vault notes
+"Test this login form" / "Scrape this doc"  playwright                   browser_snapshot() — accessibility tree
+"Where did my tokens go this week?"         codeburn                     codeburn report -p 7days
+"Rename AuthService.login across all files" serena                       rename_symbol()
+"Find all callers of process_payment()"     serena                       find_references()
+"Move UserMapper to another module"         serena                       move_symbol()
 ──────────────────────────────────────────────────────────────────────────────────
 Every bash command Claude runs              rtk                          transparent rewrite
+Every Claude reply (terse mode)             caveman                      SessionStart hook
+Every always-loaded file (CLAUDE.md etc.)  caveman:compress             one-time compression
 ```
 
 Claude Code plugins are **global extensions** installed at `~/.claude/plugins/`. Graphify is a Python tool that integrates via a global skill + PreToolUse hook + git hooks. Both fire **alongside** your project-level configuration — never replacing it.
@@ -294,6 +305,38 @@ Solution: `postprocess --no-instructions --no-hooks` — git post-commit hook on
 | Post-commit hook missing | `code-review-graph postprocess --no-instructions --no-hooks` |
 | Graph stale after large refactor | `build_graph_tool(repo_path=".", force_rebuild=True)` |
 
+## playwright — Browser Automation MCP
+
+**Purpose:** Interact with web pages from inside Claude sessions — navigate, click, fill forms, capture accessibility snapshots. Enables UI testing, live documentation scraping, OAuth flow verification, and web research without any vision model.
+
+**Why accessibility snapshots over screenshots:** Playwright MCP uses the browser's accessibility tree — structured JSON, not pixel images. No vision model required. Lower token cost. Deterministic element targeting via labels and refs (not coordinates). Falls back to `browser_screenshot` only when visual layout is needed.
+
+**Token cost:** 🟡 LOW-MEDIUM — a single snapshot of a complex page can be 1-3K tokens. Use `browser_evaluate` to extract specific data instead of reading the full snapshot repeatedly.
+
+**Install:** `npx playwright install chromium` (one-time, ~300 MB). MCP server entry already in `.mcp.json` — runs on demand via `npx @playwright/mcp@latest`, no persistent process.
+
+**Key tools:**
+- `mcp__playwright__browser_navigate(url)` — go to URL
+- `mcp__playwright__browser_snapshot()` — full accessibility tree (prefer over screenshot)
+- `mcp__playwright__browser_click(element, ref)` — click by label or ref
+- `mcp__playwright__browser_fill(element, ref, value)` — fill an input
+- `mcp__playwright__browser_screenshot()` — visual capture (only when structure isn't enough)
+- `mcp__playwright__browser_evaluate(script)` — run JS to extract specific data
+- `mcp__playwright__browser_close()` — always call when done
+
+**Standard pattern:**
+```
+browser_navigate → browser_snapshot → browser_click/fill → browser_snapshot → browser_close
+```
+
+**Manual install:**
+```bash
+npx playwright install chromium               # macOS / Linux
+npx playwright install chromium --with-deps  # Linux CI (installs system deps too)
+```
+
+**Relationship to other tools:** playwright is orthogonal to all code-intelligence tools. It answers questions about *live web pages*, not the local codebase. No overlap possible.
+
 ## The Complete Tool Stack
 
 Six tools, six axes of intelligence. Each answers a fundamentally different question:
@@ -306,6 +349,7 @@ Six tools, six axes of intelligence. Each answers a fundamentally different ques
 | *"Find code that handles rate limiting"* | **cocoindex-code** | 🔎 Semantic search | KNN over float32 vectors — finds by meaning, not names |
 | *"Is this PR safe to ship?"* | **code-review-graph** | 🔴 Change risk | BFS traversal → risk score 0–100, blast radius, breaking changes |
 | *"What's our authentication philosophy and why?"* | **obsidian-mind** | 🧠 Human knowledge | Curated vault notes — rationale, decisions, context |
+| *"Test this login form" / "Scrape this page"* | **playwright** | 🌐 Browser automation | Accessibility tree snapshot — no vision model, structured interaction |
 
 **Each bash command Claude runs →** `rtk` rewrites it transparently for 60-90% fewer output tokens. Independent of all other tools — pure execution layer.
 
@@ -374,24 +418,24 @@ Plugin hooks fire **in parallel** with project hooks on the same lifecycle event
 
 **rtk** integrates as a single `PreToolUse(Bash)` hook — first in the chain, rewrites commands before safety/quality gates check them. Self-guarding: exits 0 silently if rtk or jq absent.
 
-| Lifecycle Event | Project Hook | claude-mem | graphify | rtk | codebase-memory-mcp | cocoindex-code | code-review-graph | Conflict? |
-|----------------|-------------|-----------|----------|-----|---------------------|----------------|:-----------------:|:---------:|
-| `SessionStart(startup)` | session-start.sh | ✅ memory | — | — | — | — | — | ✅ Additive |
-| `SessionStart(resume)` | session-start.sh | — | — | — | — | — | — | ✅ None |
-| `SessionStart(clear)` | session-start.sh | ✅ | — | — | — | — | — | ✅ Additive |
-| `SessionStart(compact)` | on-compact.sh | ✅ | — | — | — | — | — | ✅ Additive |
-| `PreCompact` | pre-compact.sh | — | — | — | — | — | — | ✅ None |
-| `UserPromptSubmit` | identity-reinjection.sh | ✅ context | — | — | — | — | — | ✅ None |
-| `PreToolUse(Bash)` | rtk-rewrite → safety-gate | — | — | ✅ first | — | — | — | ✅ Ordered |
-| `PreToolUse(Write\|Edit)` | config-protection.sh | — | — | — | — | — | — | ✅ None |
-| `PreToolUse(Glob\|Grep)` | — | — | ✅ graph hint | — | — | — | — | ✅ None |
-| `PostToolUse(*)` | edit-accumulator.sh | ✅ every tool | — | — | — | — | — | ✅ Different |
-| `Stop` | stop-batch-format.sh, exit-nudge.sh | ✅ summary | — | — | — | — | — | ✅ Additive |
-| `SubagentStop` | subagent-stop.sh | — | — | — | — | — | — | ✅ None |
-| `SessionEnd` | — | ✅ drain | — | — | — | — | — | ✅ None |
-| _(background)_ | — | — | git post-commit | — | git polling 5–60s | refresh_index param | git post-commit | ✅ Independent |
+| Lifecycle Event | Project Hook | claude-mem | graphify | rtk | codebase-memory-mcp | cocoindex-code | code-review-graph | playwright | Conflict? |
+|----------------|-------------|-----------|----------|-----|---------------------|----------------|:-----------------:|:----------:|:---------:|
+| `SessionStart(startup)` | session-start.sh | ✅ memory | — | — | — | — | — | — | ✅ Additive |
+| `SessionStart(resume)` | session-start.sh | — | — | — | — | — | — | — | ✅ None |
+| `SessionStart(clear)` | session-start.sh | ✅ | — | — | — | — | — | — | ✅ Additive |
+| `SessionStart(compact)` | on-compact.sh | ✅ | — | — | — | — | — | — | ✅ Additive |
+| `PreCompact` | pre-compact.sh | — | — | — | — | — | — | — | ✅ None |
+| `UserPromptSubmit` | identity-reinjection.sh | ✅ context | — | — | — | — | — | — | ✅ None |
+| `PreToolUse(Bash)` | rtk-rewrite → safety-gate | — | — | ✅ first | — | — | — | — | ✅ Ordered |
+| `PreToolUse(Write\|Edit)` | config-protection.sh | — | — | — | — | — | — | — | ✅ None |
+| `PreToolUse(Glob\|Grep)` | — | — | ✅ graph hint | — | — | — | — | — | ✅ None |
+| `PostToolUse(*)` | edit-accumulator.sh | ✅ every tool | — | — | — | — | — | — | ✅ Different |
+| `Stop` | stop-batch-format.sh, exit-nudge.sh | ✅ summary | — | — | — | — | — | — | ✅ Additive |
+| `SubagentStop` | subagent-stop.sh | — | — | — | — | — | — | — | ✅ None |
+| `SessionEnd` | — | ✅ drain | — | — | — | — | — | — | ✅ None |
+| _(background)_ | — | — | git post-commit | — | git polling 5–60s | refresh_index param | git post-commit | on demand | ✅ Independent |
 
-**Zero conflicts across all 13 lifecycle events.** graphify's PreToolUse(Glob\|Grep) hook is a no-op when `graphify-out/graph.json` doesn't exist. codebase-memory-mcp, cocoindex-code, and code-review-graph never register Claude Code hooks (MCP only + git hooks). rtk is first in the Bash chain by design.
+**Zero conflicts across all 13 lifecycle events.** playwright registers zero lifecycle hooks — it's a pure stdio MCP server that launches only when Claude invokes a `mcp__playwright__*` tool. graphify's PreToolUse(Glob\|Grep) hook is a no-op when `graphify-out/graph.json` doesn't exist. codebase-memory-mcp, cocoindex-code, code-review-graph, and playwright never register Claude Code hooks (MCP only + git hooks where applicable). rtk is first in the Bash chain by design.
 
 ## MCP Servers — Model Context Protocol
 
@@ -437,6 +481,149 @@ Claude Code plugins are installed globally at `~/.claude/plugins/`. They coexist
 3. If it hooks `PostToolUse(*)`, monitor API quota (like claude-mem)
 4. Document in this file for team awareness
 
+## serena — LSP Symbol Refactoring
+
+**Purpose:** Atomic multi-file code transformations backed by Language Server Protocol. Rename a symbol across 50 files in one call. Move a class and all its imports. Find every caller of a function — including aliased usages grep would miss.
+
+**MCP server:** `serena` — registered in `.mcp.json` (command: `uvx serena-agent --project .`)  
+**Project config:** `.serena/project.yml` (committed — edit to add/remove languages)
+
+**Key tools:**
+```
+mcp__serena__find_symbol(name)               — find by name/type (LSP, not grep)
+mcp__serena__find_references(symbol)         — all usages across the project
+mcp__serena__rename_symbol(symbol, new_name) — rename everywhere atomically
+mcp__serena__move_symbol(symbol, target)     — move + fix all imports
+mcp__serena__inline_symbol(symbol)           — inline at all call sites
+mcp__serena__get_call_graph(symbol)          — call graph from a symbol
+```
+
+**vs. cocoindex-code:** cocoindex finds code by semantic meaning ("find code about rate limiting" → KNN vectors). Serena finds symbols by identity ("find all callers of `login()`" → LSP precision). Use serena when you need 100% recall on a specific symbol.
+
+**vs. codebase-memory-mcp:** CBM gives architecture overview (Cypher graph, blast radius). Serena does surgical transformation (rename/move/inline). After CBM tells you the blast radius of a rename, use serena to execute it.
+
+**Install note:** Uses `uvx` (isolated environment) — no global Python dependency pollution. Language servers (pyright, typescript-language-server) auto-install on first use.
+
+---
+
+## caveman — Response-Text Compression
+
+**Purpose:** Make Claude's replies shorter by 65-87% using caveman compression. Covers **token surface #2** (response text) — the surface rtk doesn't touch.
+
+**The complete token efficiency triangle:**
+
+| Surface | Tool | Savings |
+|---------|------|---------|
+| #1 Tool outputs (bash command results) | **rtk** | 60-90% |
+| #2 Response text (what Claude says) | **caveman** | 65-87% |
+| #3 Input context (CLAUDE.md etc. loaded each session) | **caveman:compress** | 46% avg |
+
+**Science:** March 2026 paper (arXiv:2604.00025) found brevity constraints improved accuracy by 26pp on benchmarks. Fewer words ≠ less smart.
+
+**Install (non-interactive):**
+```bash
+bash <(curl -fsSL https://raw.githubusercontent.com/JuliusBrussee/caveman/main/hooks/install.sh)
+```
+Installs into `~/.claude/settings.json` (user-level, no project `.claude/settings.json` conflict). Requires Node.js.
+
+**Commands after install:**
+```bash
+/caveman           # Toggle — lite / full / ultra / 文言文 (classical Chinese)
+/caveman-commit    # Terse commit messages
+/caveman-review    # One-line PR reviews
+/caveman:compress CLAUDE.md          # Compress once → saves tokens every session
+/caveman:compress claude/tasks/lessons.md
+```
+
+**caveman:compress — one-time context compression:**
+- Rewrites prose-heavy files into terse form
+- Creates `.original.md` backup — edit the original, re-run compress after edits
+- Code blocks, URLs, file paths, headings pass through untouched
+- Benchmarks: 59% on preference files, 46% average
+
+**What NOT to compress:** `.mcp.json`, `.claude/settings.json`, files with pipe-heavy tables (verify output), source code files.
+
+**Hook coexistence:** caveman uses `SessionStart` + `UserPromptSubmit` hooks in `~/.claude/settings.json`. rtk uses `PreToolUse(Bash)` in `.claude/settings.json`. Different files, different events — **zero conflicts**.
+
+---
+
+## codeburn — Token Cost Observability
+
+**Purpose:** Understand WHERE tokens go across your Claude Code sessions. Reads directly from `~/.claude/projects/` (no API keys, no proxy, no wrapper). Classifies every session into 13 task types and renders an interactive TUI dashboard.
+
+**Complements rtk:** rtk reduces tokens spent (efficiency). codeburn shows which task types need optimization most (observability). The feedback loop:
+
+```
+codeburn report → find low one-shot rate task type
+  → add context/rules in CLAUDE.md or claude/*.md
+  → rtk compresses output on those commands
+  → re-run codeburn to verify reduction
+```
+
+**Key commands:**
+```bash
+codeburn                          # Interactive TUI dashboard
+codeburn today                    # Today's sessions
+codeburn report -p 30days         # 30-day rolling window
+codeburn export --format csv      # Export for analysis
+```
+
+**Install:**
+```bash
+npm install -g codeburn      # Global install (Node.js 18+)
+npx codeburn                 # One-shot without global install
+```
+
+**Signal:** One-shot rate < 50% for a task type = that category needs more upfront context in CLAUDE.md or claude/*.md.
+
+**Token cost:** Zero — reads session files from disk, no background process, no API calls.
+
+---
+
+## Workflow Enhancement — Skills (cherry-picked from superpowers)
+
+These skills add workflow discipline that the bootstrap lacked. They are pure instruction files — no hooks, no MCP servers, zero blast radius.
+
+| Skill | What it adds | Trigger |
+|-------|-------------|---------|
+| `brainstorming` | Spec-before-code gate — HARD-GATE blocks code until design approved | Auto when new feature/component mentioned |
+| `writing-skills` | CSO (Claude Search Optimization) for skill authoring — description must be triggering conditions only | Manual when creating/editing SKILL.md |
+| `subagent-driven-development` | Actual subagent dispatch loop after `/squad-plan` — spec reviewer + quality reviewer per task | Manual after `/squad-plan` |
+| `receiving-code-review` | Prevents performative agreement ("You're absolutely right!") — enforces verify-before-implement | Auto when receiving review feedback |
+| `debug` (upgraded) | Iron Law: NO FIXES WITHOUT ROOT CAUSE — 4-phase structure (Root Cause → Hypothesis → Fix Design → Verify) | Via `/debug` command |
+
+### brainstorming
+
+Design gate before any implementation. Fires before new features, components, or behavioral changes.
+
+**HARD-GATE:** Claude will NOT write code until a design is presented and user approves it.
+
+**Flow:** Explore context → clarifying questions (one at a time) → propose 2-3 approaches → present design sections → write spec to `claude/tasks/specs/YYYY-MM-DD-<topic>-design.md` → spec self-review → user approves → run `/plan`.
+
+### writing-skills
+
+Authoring standards for SKILL.md files. Key insight: **description = triggering conditions ONLY** — never a workflow summary. When descriptions summarize workflows, Claude follows the description shortcut and skips reading the skill body.
+
+**CSO rule:** Start description with "Use when..." and include specific symptoms/situations. Never mention the process.
+
+### subagent-driven-development
+
+Upgrades `/squad-plan` from "plan generator" to "plan generator + execution orchestrator."
+
+**Per-task loop:** Implementer subagent → spec compliance reviewer → code quality reviewer → mark done. Review loops repeat until both reviewers approve.
+
+**Key rule:** Start quality review only AFTER spec compliance is ✅.
+
+### receiving-code-review
+
+Prevents performative agreement and blind implementation.
+
+**Forbidden:** "You're absolutely right!", "Great point!", "Thanks for catching that!" — any gratitude or performative phrase.
+
+**Pattern:** Read → Restate → Verify → Evaluate → Technical response or reasoned pushback → Implement one item at a time.
+
+---
+
 ## Troubleshooting
 
 | Symptom | Cause | Fix |
@@ -461,3 +648,6 @@ Claude Code plugins are installed globally at `~/.claude/plugins/`. They coexist
 | code-review-graph MCP exits immediately | `.code-review-graph/graph.db` missing | Run `mcp__code-review-graph__build_graph_tool` or `code-review-graph build .` |
 | code-review-graph communities unavailable | Missing `[communities]` extra | `pip install 'code-review-graph[communities]'` |
 | code-review-graph post-commit hook missing | `postprocess` not run | `code-review-graph postprocess --no-instructions --no-hooks` |
+| playwright MCP not found / tools missing | Node.js < 18 or npx not in PATH | Upgrade: `brew install node` or `nvm install 18`, then: `npx playwright install chromium` |
+| playwright `browser_*` tools error on first call | Chromium browsers not installed | `npx playwright install chromium` (~300 MB, one-time) |
+| playwright skipped in setup-plugins.sh | Node.js 16 or lower detected | Upgrade Node.js to 18+; MCP entry in .mcp.json is already wired |

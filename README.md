@@ -249,10 +249,10 @@ Brain replaces advisory text with real mechanisms:
 
 | What you get | How it actually works |
 |:---|:---|
-| 🔒 **Dangerous actions are blocked, not just discouraged** | Safety hooks intercept *before* execution — blocking dangerous commands before they run. 14 lifecycle hooks total across all events: bash scripts, deterministic, zero-token, unforgeable |
+| 🔒 **Dangerous actions are blocked, not just discouraged** | Safety hooks intercept *before* execution — blocking dangerous commands before they run. 16 lifecycle hooks total across all events: bash scripts, deterministic, zero-token, unforgeable |
 | 🧠 **The AI never makes the same mistake twice** | `lessons.md` persists across sessions, compactions, restarts — read at every session start, impossible to skip |
 | 🔄 **Knowledge never goes stale** | Exit checklist catches drift every turn · `/maintain` audits all docs · self-maintenance rule fires on every knowledge edit |
-| ⚡ **One command replaces 15 min of prompt engineering** | `/review` runs a 10-point protocol · `/mr` generates descriptions · `/debug` traces root causes — 26 commands, pre-built, consistent |
+| ⚡ **One command replaces 15 min of prompt engineering** | `/review` runs a 10-point protocol · `/mr` generates descriptions · `/debug` traces root causes — 31 commands, pre-built, consistent |
 | 🔍 **Your entire stack understood in 2 seconds, zero tokens** | `discover.sh` — 25+ languages, 1100+ frameworks, 21 package managers — pure bash, runs before the AI even wakes up |
 | 🗺️ **Architecture visible to the AI at all times** | **graphify** knowledge graph — god nodes, community clusters, cross-module connections. PreToolUse hook makes the AI navigate by structure, not grep through every file |
 | 🤖 **Research doesn't eat your context window** | 5 subagents run in isolated contexts — explore 20+ files, review code, challenge plans — your main conversation stays clean |
@@ -291,10 +291,10 @@ Claude Code Brain is **100+ files** of structured configuration that live in you
 Your repo
 ├── 📋 CLAUDE.md                    ← Operating protocol (auto-loaded every conversation)
 ├── ⚙️ .claude/
-│   ├── commands/                   ← 26 slash commands (/build, /test, /review, /mr, /health...)
-│   ├── hooks/                      ← 14 lifecycle hooks (safety, quality, recovery, audit)
+│   ├── commands/                   ← 31 slash commands (/build, /test, /review, /mr, /health...)
+│   ├── hooks/                      ← 16 lifecycle hooks (safety, quality, recovery, audit)
 │   ├── agents/                     ← 5 AI subagents (research, reviewer, plan-challenger...)
-│   ├── skills/                     ← 5 skills (TDD, root-cause, changelog, safety, cross-layer)
+│   ├── skills/                     ← 11 skills (TDD, triage, root-cause, code review, semantic search...)
 │   ├── rules/                      ← 13 path-scoped rules (auto-load per file type)
 │   └── settings.json               ← Tool permissions, hook registration
 ├── 📚 claude/
@@ -341,11 +341,11 @@ The system is designed to **minimize token cost** while maximizing context — y
 | Category | Count | Highlights |
 |:---------|:-----:|:-----------|
 | 📚 **Knowledge docs** | 13 | 8 domain docs (architecture, rules, build, CVE policy, terminal safety, MR templates, plugin config, decisions) · knowledge base guide · full reference guide · 3 worked domain examples |
-| ⚡ **Slash commands** | 26 | `/plan` `/build` `/test` `/lint` `/serve` `/review` `/mr` `/debug` `/diff` `/git` `/deps` `/docker` `/migrate` `/db` `/cleanup` `/maintain` `/checkpoint` `/resume` `/context` `/ticket` `/bootstrap` `/health` `/mcp` `/squad-plan` `/research` `/update-code-index` |
-| 🪝 **Lifecycle hooks** | 14 | Session recovery, config protection, terminal safety gate (3 profiles), commit quality, batch formatting, exit checklist, compaction recovery, identity refresh, permission audit, test reminders |
+| ⚡ **Slash commands** | 31 | `/plan` `/build` `/test` `/lint` `/serve` `/review` `/mr` `/debug` `/diff` `/git` `/deps` `/docker` `/migrate` `/db` `/cleanup` `/maintain` `/checkpoint` `/resume` `/context` `/ticket` `/bootstrap` `/health` `/status` `/ask` `/mcp` `/squad-plan` `/research` `/update-code-index` `/worktree` `/worktree-status` `/clean-worktrees` |
+| 🪝 **Lifecycle hooks** | 15 | Session recovery, config protection, terminal safety gate (3 profiles), commit quality, RTK token optimizer, batch formatting, exit checklist, compaction recovery, identity refresh, permission audit, test reminders |
 | 🤖 **AI subagents** | 5 | **research** (read-only exploration), **reviewer** (10-point MR review), **plan-challenger** (adversarial plan critique), **session-reviewer** (conversation pattern analysis), **security-auditor** (vulnerability scanning) — each declares its optimal model, falls back to session model for local/alternative providers |
-| 🎓 **Skills** | 8 | TDD discipline (auto-loads on test files), root-cause trace, changelog generation, session safety guards, cross-layer consistency check, **codebase-memory** (structural graph navigation), **cocoindex-code** (semantic vector search), **code-review-graph** (change risk analysis) |
-| 🔧 **Brain scripts** | 15 | `discover.sh` (3800-line stack detector), `populate-templates.sh`, `post-bootstrap-validate.sh`, `validate.sh`, `canary-check.sh`, `_platform.sh` (portable shell helpers — Linux/macOS/Windows), `portability-lint.sh` (GNU-only pattern detector), `integration-test.sh` (17 assertions: FRESH/UPGRADE/--check/3 guards, 3 platforms), `phase2-verify.sh`, `toggle-claude-mem.sh`, `generate-service-claudes.sh`, `generate-copilot-docs.sh`, `setup-plugins.sh`, `check-creative-work.sh`, `tdd-loop-check.sh` — all in `claude/scripts/` |
+| 🎓 **Skills** | 11 | TDD discipline (auto-loads on test files), root-cause trace, changelog generation, session safety guards, cross-layer consistency check, **codebase-memory** (structural graph navigation), **cocoindex-code** (semantic vector search), **code-review-graph** (change risk analysis), **repo-recap** (release notes), **pr-triage** (PR audit), **issue-triage** (issue audit) |
+| 🔧 **Brain scripts** | 14 | `discover.sh` (3800-line stack detector), `populate-templates.sh`, `post-bootstrap-validate.sh`, `validate.sh`, `canary-check.sh`, `_platform.sh` (portable shell helpers — Linux/macOS/Windows), `portability-lint.sh` (GNU-only pattern detector), `integration-test.sh` (17 assertions: FRESH/UPGRADE/--check/3 guards, 3 platforms), `phase2-verify.sh`, `toggle-claude-mem.sh`, `generate-service-claudes.sh`, `generate-copilot-docs.sh`, `setup-plugins.sh`, `check-creative-work.sh` — all in `claude/scripts/` |
 | 🤝 **GitHub Copilot config** | 8 | Root instructions, 3 scoped instruction files (+1 template), 2 reusable prompts (+1 template) |
 | 📏 **Path-scoped rules** | 13 | Terminal safety, self-maintenance, quality gates, memory policy, domain learning, practice capture, agent orchestration, language-specific rules, template for adding your own |
 | 🔌 **Plugins** | 6 | **claude-mem** (cross-session memory, disabled by default) · **graphify** (architecture knowledge graph, Python 3.10+) · **rtk** (command token optimizer, 60-90% savings) · **codebase-memory-mcp** (live structural graph, 14 MCP tools) · **cocoindex-code** (semantic vector search, Python 3.11+) · **code-review-graph** (change risk analysis, 29 MCP tools, Python 3.10+) |
@@ -419,7 +419,7 @@ Security isn't one mechanism — it's **two layers** working together:
 
 ### 🪝 Layer 2: Hooks — What Gets Intercepted at Runtime
 
-14 lifecycle hooks add runtime guardrails — deterministic bash scripts, zero tokens, zero AI reasoning:
+16 lifecycle hooks add runtime guardrails — deterministic bash scripts, zero tokens, zero AI reasoning:
 
 | Hook | What it prevents |
 |:-----|:----------------|
@@ -432,7 +432,7 @@ Security isn't one mechanism — it's **two layers** working together:
 
 Plus 8 more hooks for identity refresh, permission audit, subagent logging, exit checklist enforcement, and context budget management.
 
-> 📚 **Full hook reference:** [claude/docs/DETAILED_GUIDE.md](claude/docs/DETAILED_GUIDE.md#-lifecycle-hooks--claudehooks-14-files) — all 14 hooks with triggers, timeouts, and detailed descriptions.
+> 📚 **Full hook reference:** [claude/docs/DETAILED_GUIDE.md](claude/docs/DETAILED_GUIDE.md#-lifecycle-hooks--claudehooks-16-files) — all 16 hooks with triggers, timeouts, and detailed descriptions.
 
 ---
 
@@ -520,7 +520,7 @@ Extending the Brain is simple — one file, one registration:
 
 Three worked examples in `claude/_examples/` — API domain, database domain, messaging domain.
 
-> 📚 **Full reference:** [claude/docs/DETAILED_GUIDE.md](claude/docs/DETAILED_GUIDE.md) — complete file inventory, architecture diagrams, all 26 commands, all 14 hooks, placeholder reference, stack-specific examples, FAQ.
+> 📚 **Full reference:** [claude/docs/DETAILED_GUIDE.md](claude/docs/DETAILED_GUIDE.md) — complete file inventory, architecture diagrams, all 31 commands, all 16 hooks, placeholder reference, stack-specific examples, FAQ.
 
 ---
 

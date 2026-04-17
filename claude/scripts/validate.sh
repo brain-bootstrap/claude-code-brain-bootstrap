@@ -54,7 +54,7 @@ if $IS_TEMPLATE; then
   if [ "$_PH_COUNT" -ge 50 ]; then
     pass "Template has $_PH_COUNT placeholders (healthy)"
   else
-    fail "Template only has $_PH_COUNT placeholders (expected 90+) — likely corrupted"
+    fail "Template only has $_PH_COUNT placeholders (expected 50+) — likely corrupted"
   fi
   if grep -q 'IS_TEMPLATE_REPO' claude/scripts/populate-templates.sh 2>/dev/null; then
     pass "populate-templates.sh has self-bootstrap guard"
@@ -114,7 +114,6 @@ REQUIRED_FILES=(
   "claude/scripts/canary-check.sh"
   "claude/scripts/toggle-claude-mem.sh"
   "claude/scripts/phase2-verify.sh"
-  "claude/scripts/tdd-loop-check.sh"
   "claude/decisions.md"
   "claude/plugins.md"
   "claude/docs/DETAILED_GUIDE.md"
@@ -141,6 +140,8 @@ HOOKS=(
   ".claude/hooks/edit-accumulator.sh"
   ".claude/hooks/permission-denied.sh"
   ".claude/hooks/warn-missing-test.sh"
+  ".claude/hooks/rtk-rewrite.sh"
+  ".claude/hooks/tdd-loop-check.sh"
 )
 for h in "${HOOKS[@]}"; do
   if [ -f "$h" ]; then
@@ -171,6 +172,8 @@ COMMANDS=(
   serve migrate db context docker deps diff git
   cleanup maintain checkpoint resume bootstrap
   mcp squad-plan research update-code-index health
+  status ask
+  worktree worktree-status clean-worktrees
 )
 for cmd in "${COMMANDS[@]}"; do
   if [ -f ".claude/commands/$cmd.md" ]; then pass "/cmd: $cmd"; else fail "MISSING command: $cmd.md"; fi
@@ -186,7 +189,7 @@ done
 # 6. Skills exist
 echo ""
 echo "🧠 Skills..."
-for skill in tdd root-cause-trace changelog careful cross-layer-check; do
+for skill in tdd root-cause-trace changelog careful cross-layer-check codebase-memory cocoindex-code code-review-graph; do
   if [ -f ".claude/skills/$skill/SKILL.md" ]; then pass "skill: $skill"; else fail "MISSING skill: $skill/SKILL.md"; fi
 done
 
@@ -216,7 +219,7 @@ done
 # 8b. Scripts are executable
 echo ""
 echo "🔧 Scripts..."
-for script in claude/scripts/canary-check.sh claude/scripts/toggle-claude-mem.sh claude/scripts/discover.sh claude/scripts/populate-templates.sh claude/scripts/post-bootstrap-validate.sh claude/scripts/generate-service-claudes.sh claude/scripts/generate-copilot-docs.sh claude/scripts/phase2-verify.sh claude/scripts/setup-plugins.sh claude/scripts/check-creative-work.sh claude/scripts/validate.sh claude/scripts/tdd-loop-check.sh; do
+for script in claude/scripts/canary-check.sh claude/scripts/toggle-claude-mem.sh claude/scripts/discover.sh claude/scripts/populate-templates.sh claude/scripts/post-bootstrap-validate.sh claude/scripts/generate-service-claudes.sh claude/scripts/generate-copilot-docs.sh claude/scripts/phase2-verify.sh claude/scripts/setup-plugins.sh claude/scripts/check-creative-work.sh claude/scripts/validate.sh; do
   if [ -f "$script" ]; then
     if [ -x "$script" ]; then pass "$script (executable)"; else fail "$script exists but NOT executable — run: chmod +x $script"; fi
   else
