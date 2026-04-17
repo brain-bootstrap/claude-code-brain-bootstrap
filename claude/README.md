@@ -111,7 +111,6 @@ Task about [domain]?   → 📚 Read claude/[domain].md
 | `generate-copilot-docs.sh` | 🐙 Mirrors `claude/*.md` → `.github/copilot/` for GitHub Copilot users |
 | `setup-plugins.sh` | 🔌 All-in-one plugin management — install, disable, verify, update CLAUDE.md (used in Phase 4) |
 | `check-creative-work.sh` | ✅ Creative work gate check — architecture, placeholders, domain docs, IDE (used in Phase 3) |
-| `tdd-loop-check.sh` | 🔁 TDD enforcement Stop hook — fails the loop if tests were skipped after code changes |
 
 ### 📏 Path-Scoped Rules (`.claude/rules/`)
 
@@ -158,7 +157,9 @@ Task about [domain]?   → 📚 Read claude/[domain].md
 | `/squad-plan` | 🧑‍🤝‍🧑 Generate parallel workstream plan for Claude Squad | ❌ Manual |
 | `/research` | 🔍 Generate research questions + gather knowledge | ❌ Manual |
 | `/update-code-index` | 📋 Scan exports → generate CODE_INDEX.md; check before writing new functions | ❌ Manual |
-| `/health` | 🏥 Config health check — CLAUDE.md, settings, hooks, rules frontmatter, secrets scan | ❌ Manual |
+| `/health` | 🏥 Config health check — CLAUDE.md, settings, hooks, rules frontmatter, secrets scan, MCP binaries | ❌ Manual |
+| `/status` | 📊 One-glance project status — budget, placeholders, plugins, hooks, knowledge graph | ❌ Manual |
+| `/ask` | 🔀 Route codebase question to right tool — graph · semantic search · risk analysis | ❌ Manual |
 | `/worktree` | 🌿 Create git worktree for isolated parallel development | ❌ Manual |
 | `/worktree-status` | 📊 Show all worktrees with branch, dirty/clean status, and last commit | ❌ Manual |
 | `/clean-worktrees` | 🧹 Remove all worktrees for merged branches (`--dry-run` to preview) | ❌ Manual |
@@ -192,6 +193,13 @@ Agents declare their **optimal model** for best results — but gracefully fall 
 | `codebase-memory` | 🔵 Invocable | Manual — use before reading files for structural questions (`trace_path`, `detect_changes`, `get_architecture`) |
 | `cocoindex-code` | 🔵 Invocable | Manual — `/cocoindex-code` or `mcp__cocoindex-code__search` for semantic code discovery |
 | `code-review-graph` | 🔵 Invocable | Manual — run before any PR: `mcp__code-review-graph__detect_changes_tool(base_branch="main")` |
+| `playwright` | 🔵 Invocable | Manual — browser automation via MCP: navigate, snapshot, click, fill |
+| `brainstorming` | 🔵 Invocable | Auto — fires before new features/components; HARD-GATE: no code until design approved |
+| `writing-skills` | 🔵 Invocable | Manual — when creating or editing SKILL.md files; CSO and structure guidelines |
+| `subagent-driven-development` | 🔵 Invocable | Manual — after `/squad-plan`; dispatches subagents with two-stage review per task |
+| `receiving-code-review` | 🔵 Invocable | Auto — fires when receiving code review feedback; enforces technical rigor |
+| `codeburn` | 🔵 Invocable | Manual — `codeburn today` / `codeburn report` for token cost observability |
+| `serena` | 🔵 Invocable | Manual — LSP-backed rename/move/inline; use `mcp__serena__rename_symbol` etc. |
 
 ### 🪝 Hooks (`.claude/hooks/`)
 
@@ -212,6 +220,7 @@ Agents declare their **optimal model** for best results — but gracefully fall 
 | `permission-denied.sh` | PermissionDenied | 🔐 Audit trail — log denied operations to `.permission-denials.log` |
 | `warn-missing-test.sh` | PostToolUse(Write) | 🧪 Warn when source files lack tests (strict profile only) |
 | `rtk-rewrite.sh` | PreToolUse(Bash) | ⚡ RTK token optimizer — transparently rewrites commands for 60-90% savings (no-op if rtk absent) |
+| `tdd-loop-check.sh` | Stop | 🔁 TDD enforcement — fails the loop if tests were skipped after code changes |
 
 ---
 

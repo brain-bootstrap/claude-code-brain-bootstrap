@@ -30,14 +30,14 @@
   - [🏠 Root Files (8)](#-root-files-8)
   - [🧠 Bootstrap Scaffolding — `claude/bootstrap/`](#-bootstrap-scaffolding--claudebootstrap-3-files-auto-deleted)
   - [📚 Knowledge Docs — `claude/`](#-knowledge-docs--claude-13-files)
-  - [⚡ Slash Commands — `.claude/commands/`](#-slash-commands--claudecommands-26-files)
-  - [🪝 Lifecycle Hooks — `.claude/hooks/`](#-lifecycle-hooks--claudehooks-14-files)
+  - [⚡ Slash Commands — `.claude/commands/`](#-slash-commands--claudecommands-31-files)
+  - [🪝 Lifecycle Hooks — `.claude/hooks/`](#-lifecycle-hooks--claudehooks-16-files)
   - [🤖 AI Subagents — `.claude/agents/`](#-ai-subagents--claudeagents-5-files)
-  - [🎓 Skills — `.claude/skills/`](#-skills--claudeskills-5-files)
+  - [🎓 Skills — `.claude/skills/`](#-skills--claudeskills-18-files)
   - [📏 Path-Scoped Rules — `.claude/rules/`](#-path-scoped-rules--clauderules-13-files)
   - [🤝 GitHub Copilot — `.github/`](#-github-copilot--github-8-files)
   - [🧠 Memory — `claude/tasks/`](#-memory--claudetasks-5-files)
-  - [🔧 Scripts — `claude/scripts/`](#-scripts--claudescripts-15-files)
+  - [🔧 Scripts — `claude/scripts/`](#-scripts--claudescripts-14-files)
 - [🔬 Deep Dives](#-deep-dives)
   - [📂 The 10 Configuration Categories](#-the-10-configuration-categories)
   - [🔄 Bootstrap: How It Actually Works](#-bootstrap-how-it-actually-works)
@@ -88,7 +88,7 @@ Here's the mental model:
             "Here's everything we've learned together"
 ```
 
-**26 slash commands. 14 lifecycle hooks. 5 AI subagents. 5 skills. 2 tools. 120 validation checks. 8 domain-detection greps. Zero setup friction.**
+**31 slash commands. 16 lifecycle hooks. 5 AI subagents. 11 skills. 2 tools. 120 validation checks. 8 domain-detection greps. Zero setup friction.**
 
 > 💡 Battle-tested. Works with **any language, any framework, any repo**.
 
@@ -161,10 +161,10 @@ Your repo
 ├── ⚙️ .claude/
 │   ├── settings.json               ← Permissions, hooks, env vars
 │   ├── settings.local.json.example ← Personal overrides template
-│   ├── commands/  (26 files)       ← /build, /test, /review, /mr...
-│   ├── hooks/     (14 files)       ← Safety, quality, recovery
+│   ├── commands/  (31 files)       ← /build, /test, /review, /mr, /worktree...
+│   ├── hooks/     (15 files)       ← Safety, quality, recovery, TDD loop
 │   ├── agents/    (5 files)        ← research, reviewer, plan-challenger, session-reviewer, security-auditor
-│   ├── skills/    (5 files)        ← TDD, root-cause, changelog, careful, cross-layer
+│   ├── skills/    (11 files)       ← TDD, triage, root-cause, code review, semantic search...
 │   └── rules/     (13 files)       ← Path-scoped auto-loading rules
 │
 ├── 📚 claude/
@@ -247,7 +247,7 @@ These are the AI's textbooks. Some load automatically, others on-demand:
 
 > 💡 **The examples are training wheels.** Study them → create your own → delete them.
 
-### ⚡ Slash Commands — `.claude/commands/` (26 files)
+### ⚡ Slash Commands — `.claude/commands/` (31 files)
 
 Every command you'll reach for, pre-built and ready:
 
@@ -278,11 +278,16 @@ Every command you'll reach for, pre-built and ready:
 | `/squad-plan` | Parallel workstream plan | Claude Squad ACTION_PLAN.md |
 | `/research` | Research questions + knowledge | Targeted exploration |
 | `/update-code-index` | Scan exports → CODE_INDEX.md | Check before writing new functions |
-| `/health` | Config health check | CLAUDE.md, settings, hooks, secrets |
+| `/health` | Config health check | CLAUDE.md, settings, hooks, secrets, MCP binaries |
+| `/status` | One-glance project status | Budget, placeholders, plugins, hooks, graph |
+| `/ask` | Route codebase question to right tool | graph · semantic search · risk analysis |
+| `/worktree` | Create isolated git worktree | Parallel feature development |
+| `/worktree-status` | Show all worktrees with branch + status | At-a-glance multi-branch view |
+| `/clean-worktrees` | Remove worktrees for merged branches | `--dry-run` to preview first |
 
 > 🎯 **Unused commands cost zero tokens** — they only load when invoked. Keep them all or delete what you don't need.
 
-### 🪝 Lifecycle Hooks — `.claude/hooks/` (14 files)
+### 🪝 Lifecycle Hooks — `.claude/hooks/` (16 files)
 
 These are your guardrails. They run automatically — no tokens, no AI reasoning, just deterministic protection:
 
@@ -292,11 +297,13 @@ These are your guardrails. They run automatically — no tokens, no AI reasoning
 | 💾 `on-compact.sh` | After compaction | Re-injects context (you never lose track) | 10s |
 | 📸 `pre-compact.sh` | Before compaction | Backs up transcript to session-logs | 10s |
 | 🔒 `config-protection.sh` | File write/edit | Blocks editing `biome.json`, `tsconfig.json`… | 5s |
+| ⚡ `rtk-rewrite.sh` | Bash command | Rewrites commands for 60-90% token savings (no-op without rtk) | 5s |
 | 🚧 `terminal-safety-gate.sh` | Bash command | Blocks pagers, `vi`, unbounded output | 5s |
 | 🧹 `pre-commit-quality.sh` | Bash command (git) | Catches `debugger`, secrets, `console.log` | 30s |
 | 💡 `suggest-compact.sh` | Any tool use | Nudges `/compact` when context is growing | 5s |
 | 🪪 `identity-reinjection.sh` | User prompt | Periodic identity refresh (prevents drift) | 5s |
 | 📓 `subagent-stop.sh` | Subagent completes | Logs completion + quality nudge | 5s |
+| 🔁 `tdd-loop-check.sh` | Session end | TDD enforcement — blocks yield if tests were skipped | 120s |
 | 🎨 `stop-batch-format.sh` | Session end | Auto-formats all edited files | 120s |
 | 📝 `edit-accumulator.sh` | After file edit | Tracks edited files for batch format | 5s |
 | 👋 `exit-nudge.sh` | Session end | 6-item exit checklist reminder | 5s |
@@ -317,7 +324,7 @@ Your AI has a team. Each subagent runs in an **isolated context window** — res
 | 📊 **session-reviewer** | Sonnet | Conversation pattern analysis — detects corrections, frustrations, recurring issues | 15 |
 | 🔐 **security-auditor** | Opus | Security scanning — secrets, auth gaps, injection, CVEs, DEPLOY/HOLD/BLOCK verdict | 20 |
 
-### 🎓 Skills — `.claude/skills/` (5 files)
+### 🎓 Skills — `.claude/skills/` (18 files)
 
 Skills are specialized knowledge that activates at the right moment:
 
@@ -328,6 +335,12 @@ Skills are specialized knowledge that activates at the right moment:
 | 📝 **Changelog** | Invocable | Generates release notes from git commits (runs in isolated context) |
 | ⚠️ **Careful** | Invocable | Activates safety guards — blocks dangerous commands during sensitive ops |
 | 🔍 **Cross-Layer Check** | Invocable | Verifies a symbol exists across all monorepo layers (bundled script) |
+| 🗺️ **codebase-memory** | Invocable | Live structural graph — trace call paths, blast radius, dead code (120× fewer tokens than file reads) |
+| 🔭 **cocoindex-code** | Invocable | Semantic vector search — find code by meaning, not exact names |
+| 🛡️ **code-review-graph** | Invocable | Change risk analysis — risk score 0–100, blast radius, breaking changes before any PR |
+| 📋 **repo-recap** | Invocable | Generate comprehensive release / activity summaries ready to share with the team |
+| 🔀 **pr-triage** | Invocable | Audit open PRs, deep review selected ones, draft and post review comments |
+| 🐛 **issue-triage** | Invocable | Audit open issues, categorize, detect duplicates, cross-reference PRs |
 
 ### 📏 Path-Scoped Rules — `.claude/rules/` (13 files)
 
@@ -378,7 +391,7 @@ The AI's persistent memory across sessions:
 | `.gitkeep` | Ensures directory is tracked in git |
 | `.gitignore` | Excludes temp files (counters, accumulators) from git tracking |
 
-### 🔧 Scripts — `claude/scripts/` (15 files)
+### 🔧 Scripts — `claude/scripts/` (14 files)
 
 The automation backbone — pure bash, zero token cost:
 
@@ -395,7 +408,6 @@ The automation backbone — pure bash, zero token cost:
 | 🔌 `toggle-claude-mem.sh` | Toggle claude-mem plugin on/off — saves API quota | instant |
 | 🔌 `setup-plugins.sh` | All-in-one bootstrap plugin management — install, disable, verify, update CLAUDE.md | ~5s |
 | ✅ `check-creative-work.sh` | Creative work gate check — architecture, placeholders, domain docs, IDE section | ~1s |
-| 🔁 `tdd-loop-check.sh` | TDD enforcement Stop hook — fails the loop if tests were skipped after code changes | ~1s |
 | 🖥️ `_platform.sh` | Portable shell helper library — detects `BRAIN_PLATFORM`, provides `sed_inplace()`, `safe_pgrep()`, `require_tool()`, `supports_unicode()` | instant |
 | 🔍 `portability-lint.sh` | GNU-only pattern detector — 9 checks: `head -n -N`, `grep -P`, `readlink -f`, `stat --format/stat -c`, `date -d`, bare `sed -i`, awk `\\s`/`\\w`, `< <()`. Extensible: add patterns to the top of the script | ~1s |
 | 🧪 `integration-test.sh` | 17 assertions: FRESH install (9), UPGRADE (4), --check mode (1), and 3 guard scenarios: self-bootstrap, subdirectory, non-existent dir. Runs on all 3 platforms in CI | ~10s |
@@ -475,10 +487,16 @@ Background and invocable knowledge:
 - **Changelog** — generate release notes from git
 - **Careful** — block dangerous commands during sensitive ops
 - **Cross-Layer Check** — verify a symbol exists across all monorepo layers
+- **codebase-memory** — structural graph navigation (trace paths, blast radius, dead code)
+- **cocoindex-code** — semantic vector search (find code by meaning)
+- **code-review-graph** — change risk analysis (risk score 0–100, blast radius, breaking changes)
+- **repo-recap** — generate comprehensive release / activity summaries
+- **pr-triage** — audit open PRs, deep review selected ones, draft review comments
+- **issue-triage** — audit open issues, categorize, detect duplicates, cross-reference PRs
 
 #### 7. 🪝 Lifecycle Hooks (`.claude/hooks/`)
 
-Deterministic automation — zero token cost. 14 hooks across 8 lifecycle events:
+Deterministic automation — zero token cost. 15 hooks across 8 lifecycle events:
 - 🏁 **Session start** — inject branch, task state, reminders
 - 💾 **Compaction** — backup transcript, re-inject context
 - 🔒 **Config protection** — block editing linter/compiler configs
@@ -491,7 +509,7 @@ Deterministic automation — zero token cost. 14 hooks across 8 lifecycle events
 
 Centralized project config:
 - **Tool permissions** — allow/deny patterns for commands
-- **Hook registration** — all 14 hooks with unique IDs and timeouts
+- **Hook registration** — all 15 hooks with unique IDs and timeouts
 - **Environment** — autocompact threshold, token limits, bash timeouts
 - **Status line** — branch display in Claude Code UI
 
@@ -932,7 +950,7 @@ Update hooks, settings, and commands (generic layer). Don't overwrite your `clau
 </details>
 
 <details>
-<summary><strong>⚡ What if I don't use all 26 commands?</strong></summary>
+<summary><strong>⚡ What if I don't use all 29 commands?</strong></summary>
 
 No cost for unused commands — they only load when invoked. Delete what you don't need, or keep them around for the day you do.
 </details>
@@ -1252,10 +1270,10 @@ Brain replaces advisory text with real mechanisms:
 
 | What you get | How it actually works |
 |:---|:---|
-| 🔒 **Dangerous actions are blocked, not just discouraged** | Safety hooks intercept *before* execution — blocking dangerous commands before they run. 14 lifecycle hooks total across all events: bash scripts, deterministic, zero-token, unforgeable |
+| 🔒 **Dangerous actions are blocked, not just discouraged** | Safety hooks intercept *before* execution — blocking dangerous commands before they run. 16 lifecycle hooks total across all events: bash scripts, deterministic, zero-token, unforgeable |
 | 🧠 **The AI never makes the same mistake twice** | `lessons.md` persists across sessions, compactions, restarts — read at every session start, impossible to skip |
 | 🔄 **Knowledge never goes stale** | Exit checklist catches drift every turn · `/maintain` audits all docs · self-maintenance rule fires on every knowledge edit |
-| ⚡ **One command replaces 15 min of prompt engineering** | `/review` runs a 10-point protocol · `/mr` generates descriptions · `/debug` traces root causes — 26 commands, pre-built, consistent |
+| ⚡ **One command replaces 15 min of prompt engineering** | `/review` runs a 10-point protocol · `/mr` generates descriptions · `/debug` traces root causes — 31 commands, pre-built, consistent |
 | 🔍 **Your entire stack understood in 2 seconds, zero tokens** | `discover.sh` — 25+ languages, 1100+ frameworks, 21 package managers — pure bash, runs before the AI even wakes up |
 | 🤖 **Research doesn't eat your context window** | 5 subagents run in isolated contexts — explore 20+ files, review code, challenge plans — your main conversation stays clean |
 | 🤝 **One brain, three AI tools** | Write knowledge once → Claude Code, GitHub Copilot, and any LLM all read it — switch tools without starting over |
@@ -1267,10 +1285,10 @@ Brain replaces advisory text with real mechanisms:
 | Metric | Count |
 |:-------|------:|
 | 📂 Files | 100+ |
-| ⚡ Slash commands | 26 |
-| 🪝 Lifecycle hooks | 14 |
+| ⚡ Slash commands | 31 |
+| 🪝 Lifecycle hooks | 15 |
 | 📏 Golden rules | 24 |
-| 🎓 Skills | 5 |
+| 🎓 Skills | 11 |
 | ✅ Validation checks | 120 |
 | 🏷️ Configurable placeholders | 35+ |
 | 🔄 Bootstrap phases | 5 |
