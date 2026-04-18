@@ -1,7 +1,7 @@
 #!/bin/bash
 # Copilot Hook: PreToolUse — Terminal Safety Gate
 # Blocks dangerous terminal patterns before execution.
-# Adapted from .claude/hooks/terminal-safety-gate.sh for VS Code.
+# Adapted from .claude/hooks/terminal-safety-gate.sh for GitHub Copilot.
 # Exit: 0 = allow, 2 = block
 
 INPUT=$(cat)
@@ -44,9 +44,10 @@ if echo "$CMD" | grep -qE '(^|[[:space:]])sleep[[:space:]]+[0-9]'; then
   exit 2
 fi
 
-# === WARN — Missing pager guards ===
+# === BLOCK — Missing pager guards ===
 if echo "$CMD" | grep -qE '(^|[[:space:]])git[[:space:]]+(log|show|diff|stash)' && ! echo "$CMD" | grep -q '\-\-no-pager'; then
-  echo "⚠️ WARNING: git command without --no-pager may hang. Use: git --no-pager ..."
+  echo "🛑 BLOCKED: git command without --no-pager may hang. Use: git --no-pager ..."
+  exit 2
 fi
 
 exit 0

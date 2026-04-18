@@ -1,21 +1,24 @@
 ---
-applyTo: "**/*"
+applyTo: '**/*'
 ---
+
 # Terminal Safety — MANDATORY for every `run_in_terminal` call AND every shell file written
 
-> **This is the #1 cause of session hangs.** Shell is **zsh** in IntelliJ. Read EVERY rule before running ANY command OR writing any `.sh` file.
+> **This is the #1 cause of session hangs.** Shell depends on your terminal configuration (often zsh on macOS, bash on Linux). Read EVERY rule before running ANY command OR writing any `.sh` file.
 
 ## 🚨 PIPE `|` — THE RECURRING SESSION KILLER (applies to COMMANDS and FILE CONTENT)
 
 The pipe character kills sessions in **two different contexts**:
 
 ### Context 1: Running a command in terminal
+
 ```
 ✅ grep -E 'pattern1|pattern2' file       (single quotes)
 ❌ grep -E "pattern1|pattern2" file       (double quotes — zsh misinterprets |)
 ```
 
 ### Context 2: WRITING shell code (hooks, scripts, templates)
+
 ```
 ✅ case "$FILE" in *.js|*.ts|*.tsx) ;;    (| is a shell case separator — always safe)
 ❌ echo "$FILE" | grep -E "\.(js|ts)$"    (| in double quotes = silent corruption risk)
@@ -26,6 +29,7 @@ The pipe character kills sessions in **two different contexts**:
 When a template `{{PLACEHOLDER}}` expands to pipe-separated values, `case` is mandatory.
 
 ### ABSOLUTE RULES for `|`:
+
 ```
 ✅ grep -E 'a|b' file                         (single quotes for terminal regex)
 ✅ case "$VAR" in *.js|*.ts) ;;               (case for extension matching in scripts)
@@ -77,4 +81,3 @@ When a template `{{PLACEHOLDER}}` expands to pipe-separated values, `case` is ma
 4. ✅ `${VAR:-.}` used instead of bare `$VAR` for path variables that may be empty?
 5. ✅ `set -eo pipefail` at top of script (or deliberate reason it's absent)?
 6. ✅ `|| true` after any `grep` whose exit code 1 (no match) should not abort the script?
-

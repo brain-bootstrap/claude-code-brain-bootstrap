@@ -333,7 +333,7 @@ Solution: `postprocess --no-instructions --no-hooks` — git post-commit hook on
 
 **Token cost:** 🟡 LOW-MEDIUM — a single snapshot of a complex page can be 1-3K tokens. Use `browser_evaluate` to extract specific data instead of reading the full snapshot repeatedly.
 
-**Install:** `npx playwright install chromium` (one-time, ~300 MB). MCP server entry already in `.mcp.json` — runs on demand via `npx @playwright/mcp@latest`, no persistent process.
+**Install:** `npx playwright install chromium` (one-time, ~300 MB). MCP server entry is registered in `.mcp.json` by `setup-plugins.sh` — runs on demand via `npx @playwright/mcp@latest`, no persistent process.
 
 **Key tools:**
 
@@ -577,6 +577,18 @@ Installs into `~/.claude/settings.json` (user-level, no project `.claude/setting
 
 **Hook coexistence:** caveman uses `SessionStart` + `UserPromptSubmit` hooks in `~/.claude/settings.json`. rtk uses `PreToolUse(Bash)` in `.claude/settings.json`. Different files, different events — **zero conflicts**.
 
+**Copilot equivalents (`.github/` — no hooks, prompt-based):**
+
+| Claude Code                         | Copilot                            | Notes                                             |
+| ----------------------------------- | ---------------------------------- | ------------------------------------------------- |
+| `/caveman` (4 levels)               | `/caveman` prompt                  | Per-conversation activation, all intensity levels |
+| `/caveman-commit`                   | `/caveman-commit` prompt           | Terse Conventional Commits                        |
+| `/caveman-review`                   | `/caveman-review` prompt           | One-line PR review comments                       |
+| `/caveman:compress <file>`          | `/caveman-compress` prompt         | File compression for token savings                |
+| Auto-activation (SessionStart hook) | `caveman.instructions.md.disabled` | Rename to `.md` to enable always-on terse mode    |
+
+> **Limitation:** Copilot has no session hooks — caveman mode is opt-in per conversation via `/caveman` prompt, or always-on via the instruction file. No dynamic toggle mid-session.
+
 ---
 
 ## codeburn — Token Cost Observability
@@ -684,4 +696,4 @@ Prevents performative agreement and blind implementation.
 | code-review-graph post-commit hook missing       | `postprocess` not run                         | `code-review-graph postprocess --no-instructions --no-hooks`                                 |
 | playwright MCP not found / tools missing         | Node.js < 18 or npx not in PATH               | Upgrade: `brew install node` or `nvm install 18`, then: `npx playwright install chromium`    |
 | playwright `browser_*` tools error on first call | Chromium browsers not installed               | `npx playwright install chromium` (~300 MB, one-time)                                        |
-| playwright skipped in setup-plugins.sh           | Node.js 16 or lower detected                  | Upgrade Node.js to 18+; MCP entry in .mcp.json is already wired                              |
+| playwright skipped in setup-plugins.sh           | Node.js 16 or lower detected                  | Upgrade Node.js to 18+; run setup-plugins.sh again to register MCP entry                     |

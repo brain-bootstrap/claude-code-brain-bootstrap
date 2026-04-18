@@ -82,6 +82,11 @@ check WARN \
   "< <() process substitution — prefer tmpfile for Git Bash compat" \
   '< <('
 
+# ── echo -e (not POSIX — use printf '%b\n' instead) ───────────────
+check WARN \
+  "echo -e is not portable (dash/ash print literal -e) — use printf" \
+  'echo -e '
+
 # ── Summary ────────────────────────────────────────────────────────
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"

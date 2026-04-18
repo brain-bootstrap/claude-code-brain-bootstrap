@@ -1,7 +1,7 @@
 #!/bin/bash
 # Copilot Hook: PreToolUse — Config Protection
 # Blocks edits to linter/formatter/compiler config files.
-# Adapted from .claude/hooks/config-protection.sh for VS Code tool names.
+# Adapted from .claude/hooks/config-protection.sh for GitHub Copilot.
 # Exit: 0 = allow, 2 = block
 
 INPUT=$(cat)
@@ -42,5 +42,12 @@ for PATTERN in "${PROTECTED_PATTERNS[@]}"; do
     exit 2
   fi
 done
+
+# Block IDE config directories (may be present from any IDE)
+if [[ "$FILE_PATH" == *".idea/"* ]] || [[ "$FILE_PATH" == *".vscode/"* ]]; then
+  echo "🛑 BLOCKED: Editing IDE configuration files is not allowed."
+  echo "If you truly need to change it, ask the user for explicit approval first."
+  exit 2
+fi
 
 exit 0

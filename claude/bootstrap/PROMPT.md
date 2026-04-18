@@ -11,6 +11,7 @@
 Bootstrap is **READ + CONFIGURE**. You document what exists. You do not initialize or scaffold the project.
 
 **Never create these files:**
+
 - Any `*.lock` file (`yarn.lock`, `package-lock.json`, `pnpm-lock.yaml`, `bun.lockb`)
 - Package manager configs for tools **not already in the project** (`.yarnrc.yml` if no yarn, `bunfig.toml` if no bun)
 - Any `.env*` file (blocked by permissions)
@@ -65,14 +66,14 @@ If you hit ambiguity, make the best choice and document it in the report. Only s
 
 ## 📋 Phase Map
 
-| Phase | Applies to | Core action | Expected AI-work |
-|:------|:-----------|:-----------|:---:|
-| **1** Discovery | Both | `discover.sh` → sets MODE, starts plugin bg install | ~2s |
-| **2** Smart Merge | **UPGRADE only** | Read guide → backup → preserve + enhance | 1-3 min |
-| **3** Populate | Both | Script + creative docs | 3-5 min |
-| **3.5** MCP | Both | Scan discovery → add suggestions to report (no user input) | ~5s |
-| **4** Plugins | Both | 1 script: claude-mem (install, disable, verify) + graphify (pip, skill, hooks) | ~5s |
-| **5** Validate | Both | Validate script + report | 30s |
+| Phase             | Applies to       | Core action                                                                    | Expected AI-work |
+| :---------------- | :--------------- | :----------------------------------------------------------------------------- | :--------------: |
+| **1** Discovery   | Both             | `discover.sh` → sets MODE, starts plugin bg install                            |       ~2s        |
+| **2** Smart Merge | **UPGRADE only** | Read guide → backup → preserve + enhance                                       |     1-3 min      |
+| **3** Populate    | Both             | Script + creative docs                                                         |     3-5 min      |
+| **3.5** MCP       | Both             | Scan discovery → add suggestions to report (no user input)                     |       ~5s        |
+| **4** Plugins     | Both             | 1 script: claude-mem (install, disable, verify) + graphify (pip, skill, hooks) |       ~5s        |
+| **5** Validate    | Both             | Validate script + report                                                       |       30s        |
 
 ---
 
@@ -144,6 +145,7 @@ bash claude/scripts/populate-templates.sh claude/tasks/.discovery.env . 2>&1
 ```
 
 Handles in one pass: `PROJECT_NAME` (8 files), build/test/lint/serve commands, package manager, runtime, formatter, scanner, migration/DB/deps commands, TDD skill layers, settings.json permissions, **plus**:
+
 - **Per-service CLAUDE.md stubs** — `generate-service-claudes.sh` creates stubs for each monorepo service
 - **IDE Integration** — auto-detects `.idea/`/`.vscode/` → uncomments matching CLAUDE.md section
 - **GitHub Copilot docs** — `generate-copilot-docs.sh` mirrors `claude/*.md` → `.github/copilot/`
@@ -155,9 +157,11 @@ Handles in one pass: `PROJECT_NAME` (8 files), build/test/lint/serve commands, p
 #### Step 2: Creative Population (YOU do this)
 
 > 🧠 **ATTENTION CHECK** — Most important phase. Re-read your checklist and mark what's still unchecked:
+>
 > ```bash
 > cat claude/tasks/.bootstrap-plan.txt
 > ```
+>
 > Rules still in effect: (1) NEVER lose user data, (2) real patterns from code — not filler, (3) batch reads
 
 > **⚠️ DEPTH RULE**: For repos with >10 services, read 2-3 actual source files per domain. A 20-line doc with 3 real patterns beats 100 lines of filler.
@@ -175,6 +179,7 @@ bash claude/scripts/pre-creative-check.sh . 2>&1
 ```
 
 **You MUST follow the manifest output:**
+
 - **SKIP** domains → do NOT create or modify their docs (they already have ≥5 real patterns)
 - **ENRICH** domains → read source files, add real patterns to the existing doc
 - **CREATE** domains → create `claude/<domain>.md` + `.claude/rules/<domain>.md`
@@ -182,9 +187,11 @@ bash claude/scripts/pre-creative-check.sh . 2>&1
 This prevents duplicate docs while ensuring gaps are filled. The manifest overrides item 2's greps below — if the manifest says SKIP, do NOT create that domain doc even if the grep returns hits.
 
 1. **`claude/architecture.md`** — Fill workspace layout, service/module catalog, shared packages, infrastructure. Use `TOP_DIRS` from discovery plus:
+
    ```bash
    ls -d */ 2>/dev/null
    ```
+
    For monorepos: check each dir for `package.json`, `Cargo.toml`, `go.mod`, `pom.xml`.
 
 2. **`CLAUDE.md` — Fill ALL commented sections + scan for Critical Patterns**:
@@ -275,6 +282,7 @@ bash claude/scripts/check-creative-work.sh . 2>&1
 ```
 
 Fix any ❌. IDE ⚠️: if `.idea/`/`.vscode/` wasn't detected (fresh clone), uncomment IntelliJ section by default. Then re-run copilot docs:
+
 ```bash
 bash claude/scripts/generate-copilot-docs.sh . 2>&1
 ```
@@ -288,6 +296,7 @@ bash claude/scripts/generate-copilot-docs.sh . 2>&1
 > **⚠️ Do NOT ask the user. Do NOT configure MCP servers during bootstrap. Proceed to Phase 4 immediately.**
 
 Scan discovery output for stack-matched suggestions to include in the final report:
+
 - `DATABASE` detected → `postgres` or `mysql` MCP server
 - `CI_SYSTEM=github-actions` or GitHub remote → `github` MCP server
 - Web frontend detected → `web-search` MCP server
@@ -297,22 +306,72 @@ Add a **"💡 MCP Suggestions"** bullet list to the final report. User configure
 
 ---
 
-### Phase 4: Plugin Setup (1 command)
+### Phase 4: Plugin Setup (conversational gate → 1 command)
 
-> TL;DR: one script handles everything. Plugins extend Claude Code with persistent capabilities it doesn't have natively.
+> TL;DR: ASK the user first, then run ONE command with the right flags. Plugins extend Claude Code with persistent capabilities it doesn't have natively.
+
+#### Step 4A: Ask the user their plugin strategy
+
+**⚠️ CRITICAL — You MUST ask before running the script.** The script has interactive prompts that HANG inside Claude Code's terminal. Always pass `--strategy=` flag.
+
+Present this choice to the user (copy-paste friendly):
+
+> **🔌 Plugin Setup** — Brain Bootstrap includes 10 optional plugins.
+> How would you like to proceed?
+>
+> - **0 — NONE** — Skip all plugins (instructions provided to install any later)
+> - **1 — FULL** — Install everything (~10-20 min, ~2 GB disk)
+> - **2 — RECOMMENDED** — Core 3 only: claude-mem, rtk, codebase-memory-mcp (~3 min)
+> - **3 — PERSONALIZE** — Cherry-pick: you choose which ones
+
+**Default** (if user says "just go" / "whatever" / presses enter): use `--strategy=recommended`.
+
+#### Step 4B: If user chose PERSONALIZE (option 3)
+
+Present each plugin with a brief description. Ask which to **skip** (default = install all):
+
+| #   | Plugin                  | Tier           | What it does                                       | Install time |
+| --- | ----------------------- | -------------- | -------------------------------------------------- | ------------ |
+| 1   | **claude-mem**          | ✅ Recommended | Cross-session memory (SQLite + ChromaDB)           | ~30s         |
+| 2   | **rtk**                 | ✅ Recommended | Token optimizer (60-90% fewer output tokens)       | ~1-2 min     |
+| 3   | **codebase-memory-mcp** | ✅ Recommended | Structural graph (14 MCP tools, 120× fewer tokens) | ~10s         |
+| 4   | **graphify**            | ⚠️ Heavy       | Knowledge graph (communities, god-node detection)  | ~3-5 min     |
+| 5   | **cocoindex-code**      | ⚠️ Heavy       | Semantic vector search (~1 GB torch download)      | ~5-15 min    |
+| 6   | **code-review-graph**   | ⚠️ Heavy       | Change risk analysis (29 MCP tools)                | ~3-5 min     |
+| 7   | **playwright-mcp**      | 💡 Optional    | Browser automation (~300 MB Chromium)              | ~2-3 min     |
+| 8   | **codeburn**            | 💡 Optional    | Token cost dashboard                               | ~10s         |
+| 9   | **caveman**             | 💡 Optional    | Response compression (65-87% fewer tokens)         | ~10s         |
+| 10  | **serena**              | 💡 Optional    | LSP refactoring MCP (rename/move/inline)           | ~30s         |
+
+Collect the user's answer, then build the `--skip=` flag. Examples:
+
+- User: "skip the heavy ones" → `--skip=graphify,cocoindex,crg`
+- User: "just the recommended 3" → use `--strategy=recommended` instead
+- User: "all except playwright and cocoindex" → `--skip=playwright,cocoindex`
+
+#### Step 4C: Run the command
+
+Build the command from the user's choice:
 
 ```bash
-bash claude/scripts/setup-plugins.sh . 2>&1
+# Examples — pick the right one:
+bash claude/scripts/setup-plugins.sh --strategy=none . 2>&1
+bash claude/scripts/setup-plugins.sh --strategy=full . 2>&1
+bash claude/scripts/setup-plugins.sh --strategy=recommended . 2>&1
+bash claude/scripts/setup-plugins.sh --strategy=full --skip=graphify,cocoindex,crg . 2>&1
 ```
+
+**⚠️ NEVER run `setup-plugins.sh` without `--strategy=` flag inside Claude Code.** It will hang on interactive prompts.
 
 **Why plugins matter — each solves a specific Claude Code limitation:**
 
-| Plugin | What it solves | Value |
-|--------|---------------|-------|
-| **claude-mem** | Claude Code forgets everything between sessions | Cross-session memory: observations from every tool use are persisted in SQLite + ChromaDB. Next session, Claude recalls past decisions, mistakes, and patterns without re-exploring. **Disabled by default** — saves ~48% API quota. Enable when doing multi-session work. |
-| **graphify** | Claude Code re-reads files every time you ask an architecture question | Knowledge graph: builds a navigable map of your codebase (entities, relationships, communities). After first build (~5 min), architecture questions cost **71.5× fewer tokens**. Auto-rebuilds on git commit/checkout via hooks. |
+| Plugin         | What it solves                                                         | Value                                                                                                                                                                                                                                                                      |
+| -------------- | ---------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **claude-mem** | Claude Code forgets everything between sessions                        | Cross-session memory: observations from every tool use are persisted in SQLite + ChromaDB. Next session, Claude recalls past decisions, mistakes, and patterns without re-exploring. **Disabled by default** — saves ~48% API quota. Enable when doing multi-session work. |
+| **graphify**   | Claude Code re-reads files every time you ask an architecture question | Knowledge graph: builds a navigable map of your codebase (entities, relationships, communities). After first build (~5 min), architecture questions cost **71.5× fewer tokens**. Auto-rebuilds on git commit/checkout via hooks.                                           |
 
 The script handles installation in sequence:
+
 1. **claude-mem** — waits for background install → disables (quota protection) → kills worker → verifies → updates CLAUDE.md plugin placeholder. If install failed, documents in report with manual command.
 2. **graphify** — detects Python 3.10+ → `pip install graphifyy` → `graphify install` (global skill) → `graphify hook install` (git hooks for auto-rebuild on commit/branch switch). If Python not available, skips gracefully with manual instructions.
 
@@ -346,6 +405,7 @@ Runs `claude/scripts/validate.sh` + `canary-check.sh` + placeholder check + auto
 **TEAM mode** = commit everything. The `git add` command goes in the report's "What's Next" section.
 
 **SOLO mode** = personal config, not committed. If the user said "solo" or "don't commit" earlier in the conversation, apply SOLO now:
+
 ```bash
 cat >> .gitignore << 'GITIGNORE'
 
@@ -361,6 +421,7 @@ GITIGNORE
 ```
 
 In the report, always include both options:
+
 ```
 🤝 Mode: TEAM (default)
    → Commit: git add CLAUDE.md .claudeignore claude/ .claude/ .github/
@@ -370,6 +431,7 @@ In the report, always include both options:
 #### Generate the Report
 
 Read the report template now:
+
 ```bash
 cat claude/bootstrap/REFERENCE.md
 ```
@@ -407,6 +469,7 @@ If `setup-plugins.sh` successfully installed graphify (check `GRAPHIFY_STATUS` i
 **This is the ONE exception to "do not ask for permission"** — the graph build takes ~5 minutes and costs tokens (Claude extraction pass). The user should choose when to spend that time.
 
 If the user says yes:
+
 ```bash
 /graphify .
 ```

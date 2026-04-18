@@ -1,28 +1,3 @@
 {
-  "mcpServers": {
-    "codebase-memory-mcp": {
-      "command": "codebase-memory-mcp",
-      "args": []
-    },
-    "cocoindex-code": {
-      "type": "stdio",
-      "command": "ccc",
-      "args": ["mcp"]
-    },
-    "code-review-graph": {
-      "type": "stdio",
-      "command": "uvx",
-      "args": ["code-review-graph", "serve"]
-    },
-    "playwright": {
-      "type": "stdio",
-      "command": "npx",
-      "args": ["@playwright/mcp@latest"]
-    },
-    "serena": {
-      "type": "stdio",
-      "command": "uvx",
-      "args": ["serena-agent", "--project", "."]
-    }
-  }
+  "mcpServers": {}
 }

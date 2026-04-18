@@ -53,7 +53,8 @@ if [ "${1:-}" = "--check" ]; then
     echo "  ✅ bash $BASH_VERSION (≥4 — full support)"
   else
     echo "  ⚠️  bash $BASH_VERSION (<4 — discover.sh and populate-templates.sh need Bash 4+)"
-    echo "     macOS: brew install bash"
+    echo '     Fix: brew install bash && export PATH="$(brew --prefix)/bin:$PATH"'
+    echo "     Then re-run this command. (Restart your terminal to make it permanent.)"
   fi
   # Python 3.10+ (required for graphify knowledge graph — optional but recommended)
   PY_FOUND=false
@@ -352,7 +353,7 @@ if [ "$MODE" = "FRESH" ]; then
     cp "$SCRIPT_DIR/.github/copilot-instructions.md" "$TARGET/.github/copilot-instructions.md"
     echo "  ✅ .github/copilot-instructions.md"
   fi
-  for f in "$SCRIPT_DIR/.github/instructions/"*.instructions.md; do
+  for f in "$SCRIPT_DIR/.github/instructions/"*.instructions.md "$SCRIPT_DIR/.github/instructions/"*.instructions.md.disabled; do
     [ -f "$f" ] && cp "$f" "$TARGET/.github/instructions/"
   done
   echo "  ✅ .github/instructions/"
@@ -379,18 +380,28 @@ if [ "$MODE" = "FRESH" ]; then
     done
     chmod +x "$TARGET/.github/hooks/scripts/"*.sh 2>/dev/null || true
     echo "  ✅ .github/hooks/ (Copilot)"
-    # Run generators to produce prompts/agents from Claude sources
-    echo "  🔄 Running Copilot generators..."
-    (cd "$TARGET" && bash "$SCRIPT_DIR/claude/scripts/generate-copilot-prompts.sh" 2>/dev/null) || true
-    (cd "$TARGET" && bash "$SCRIPT_DIR/claude/scripts/generate-copilot-agents.sh" 2>/dev/null) || true
-    echo "  ✅ Copilot prompts + agents generated from Claude sources"
+    # NOTE: generators NOT run on FRESH — all files were just bulk-copied.
+    # Generators are only useful on UPGRADE (Phase D) when users may have
+    # added custom .claude/commands/ or .claude/agents/ that need Copilot equivalents.
   fi
 
   # Make scripts executable
   chmod +x "$TARGET/.claude/hooks/"*.sh 2>/dev/null || true
   chmod +x "$TARGET/claude/scripts/"*.sh 2>/dev/null || true
 
-  total=$(find "$TARGET/claude" "$TARGET/.claude" -type f 2>/dev/null | wc -l)
+  # Count ALL installed files (claude/ + .claude/ + .github/ Brain files + root files)
+  total=0
+  for _count_dir in "$TARGET/claude" "$TARGET/.claude"; do
+    [ -d "$_count_dir" ] && total=$((total + $(find "$_count_dir" -type f 2>/dev/null | wc -l)))
+  done
+  # .github/ — only count Brain-installed subdirectories, not repo's existing workflows/templates
+  for _count_dir in "$TARGET/.github/instructions" "$TARGET/.github/prompts" "$TARGET/.github/agents" "$TARGET/.github/hooks"; do
+    [ -d "$_count_dir" ] && total=$((total + $(find "$_count_dir" -type f 2>/dev/null | wc -l)))
+  done
+  [ -f "$TARGET/.github/copilot-instructions.md" ] && total=$((total + 1))
+  for _count_f in CLAUDE.md CLAUDE.local.md.example .claudeignore .mcp.json .graphifyignore; do
+    [ -f "$TARGET/$_count_f" ] && total=$((total + 1))
+  done
   echo ""
   # Ensure always-personal files are gitignored (regardless of SOLO/TEAM)
   GITIGNORE_FILE="$TARGET/.gitignore"
@@ -413,7 +424,8 @@ if [ "$MODE" = "FRESH" ]; then
   echo "✅ Fresh install complete! $total files installed."
   echo ""
   echo "👉 Next step:"
-  echo "   Open Claude Code and run /bootstrap"
+  echo "   Open your AI assistant and run /bootstrap"
+  echo "   (Claude Code CLI, VS Code Copilot, or JetBrains Claude plugin)"
   echo ""
   exit 0
 fi
@@ -681,7 +693,7 @@ if [ -f "$SCRIPT_DIR/.github/copilot-instructions.md" ]; then
     phase_d_added=$((phase_d_added + 1))
   fi
 fi
-for f in "$SCRIPT_DIR/.github/instructions/"*.instructions.md; do
+for f in "$SCRIPT_DIR/.github/instructions/"*.instructions.md "$SCRIPT_DIR/.github/instructions/"*.instructions.md.disabled; do
   [ -f "$f" ] || continue
   fname="$(basename "$f")"
   if copy_if_missing "$f" "$TARGET/.github/instructions/$fname"; then
@@ -729,11 +741,18 @@ if [ "$COPILOT_MODE" = true ]; then
     fi
   done
   chmod +x "$TARGET/.github/hooks/scripts/"*.sh 2>/dev/null || true
-  # Run generators (idempotent — skip hand-crafted files)
-  echo "  🔄 Running Copilot generators..."
-  (cd "$TARGET" && bash "$SCRIPT_DIR/claude/scripts/generate-copilot-prompts.sh" 2>/dev/null) || true
-  (cd "$TARGET" && bash "$SCRIPT_DIR/claude/scripts/generate-copilot-agents.sh" 2>/dev/null) || true
-  echo "  ✅ Copilot prompts + agents generated from Claude sources"
+  # Run generators — capture output, show concise summary
+  _prompt_out="$(cd "$TARGET" && bash "$SCRIPT_DIR/claude/scripts/generate-copilot-prompts.sh" 2>/dev/null)" || true
+  _agent_out="$(cd "$TARGET" && bash "$SCRIPT_DIR/claude/scripts/generate-copilot-agents.sh" 2>/dev/null)" || true
+  _p_created="$(echo "$_prompt_out" | grep 'Created:' | grep -o '[0-9]*')" || _p_created=0
+  _p_stubs="$(echo "$_prompt_out" | grep 'Stubs overwritten:' | grep -o '[0-9]*')" || _p_stubs=0
+  _a_wrote="$(echo "$_agent_out" | grep -c 'WROTE')" || _a_wrote=0
+  _gen_total=$((_p_created + _p_stubs + _a_wrote))
+  if [ "$_gen_total" -gt 0 ]; then
+    echo "  🔄 Copilot generators: ${_p_created} prompts created, ${_p_stubs} stubs refreshed, ${_a_wrote} agents generated"
+  else
+    echo "  ✅ Copilot prompts + agents — up to date"
+  fi
 fi
 
 ADDED_COUNT=$((ADDED_COUNT + phase_d_added))
@@ -811,7 +830,8 @@ echo ""
 echo "┌──────────────────────────────────────────────────────┐"
 echo "│  👉 Next step:                                       │"
 echo "│                                                      │"
-echo "│  Open Claude Code and run /bootstrap                 │"
+echo "│  Open your AI assistant and run /bootstrap            │"
+echo "│  (Claude Code, VS Code Copilot, or JetBrains)        │"
 echo "│     Phase 2 (Smart Merge) will:                      │"
 echo "│     • Enhance CLAUDE.md with new template sections   │"
 echo "│     • Deep-merge settings.json (your values win)     │"

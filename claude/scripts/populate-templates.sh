@@ -13,9 +13,15 @@ fi
 
 # ─── Bash 4+ required (associative arrays — declare -A) ──────────
 if [ "${BASH_VERSINFO[0]:-0}" -lt 4 ]; then
+  # Auto-upgrade: re-exec with Homebrew bash if available (macOS ships bash 3.2)
+  for _brew_bash in /opt/homebrew/bin/bash /usr/local/bin/bash; do
+    if [ -x "$_brew_bash" ] && [ "$("$_brew_bash" -c 'echo ${BASH_VERSINFO[0]}')" -ge 4 ] 2>/dev/null; then
+      exec "$_brew_bash" "$0" "$@"
+    fi
+  done
   echo "❌ bash 4+ required (found: ${BASH_VERSION:-unknown})" >&2
-  echo "   macOS users: brew install bash" >&2
-  echo "   Then re-run: /opt/homebrew/bin/bash $0 $*" >&2
+  echo '   Fix: brew install bash && export PATH="$(brew --prefix)/bin:$PATH"' >&2
+  echo "   Then re-run this command." >&2
   exit 1
 fi
 
@@ -373,7 +379,7 @@ if [ -f "$SETTINGS" ]; then
       echo "  ⚙️  Would add '$PKG' to settings.json permissions"
     else
       # Add package manager to permissions.allow before the Edit entry
-      sed_inplace "/\"Edit\"/i\\      \"Bash($PKG *)\"," "$SETTINGS"
+      insert_before_line "\"Edit\"" "      \"Bash($PKG *)\"," "$SETTINGS"
       echo "  ⚙️  Added '$PKG' to settings.json permissions"
     fi
   fi
@@ -391,7 +397,7 @@ if [ -f "$SETTINGS" ]; then
     for TOOL in "python3" "python" "pytest" "ruff" "black" "mypy" "pip"; do
       if ! grep -qF "Bash($TOOL " "$SETTINGS" 2>/dev/null; then
         if ! $DRY_RUN; then
-          sed_inplace "/\"Edit\"/i\\      \"Bash($TOOL *)\"," "$SETTINGS"
+          insert_before_line "\"Edit\"" "      \"Bash($TOOL *)\"," "$SETTINGS"
         fi
       fi
     done
@@ -404,7 +410,7 @@ if [ -f "$SETTINGS" ]; then
     for TOOL in "go"; do
       if ! grep -qF "Bash($TOOL " "$SETTINGS" 2>/dev/null; then
         if ! $DRY_RUN; then
-          sed_inplace "/\"Edit\"/i\\      \"Bash($TOOL *)\"," "$SETTINGS"
+          insert_before_line "\"Edit\"" "      \"Bash($TOOL *)\"," "$SETTINGS"
         fi
       fi
     done
@@ -416,7 +422,7 @@ if [ -f "$SETTINGS" ]; then
     for TOOL in "cargo" "rustfmt" "clippy"; do
       if ! grep -qF "Bash($TOOL " "$SETTINGS" 2>/dev/null; then
         if ! $DRY_RUN; then
-          sed_inplace "/\"Edit\"/i\\      \"Bash($TOOL *)\"," "$SETTINGS"
+          insert_before_line "\"Edit\"" "      \"Bash($TOOL *)\"," "$SETTINGS"
         fi
       fi
     done
@@ -427,7 +433,7 @@ if [ -f "$SETTINGS" ]; then
   if [ -f "Makefile" ] || [ -f "makefile" ] || [ -f "GNUmakefile" ]; then
     if ! grep -qF "Bash(make " "$SETTINGS" 2>/dev/null; then
       if ! $DRY_RUN; then
-        sed_inplace "/\"Edit\"/i\\      \"Bash(make *)\"," "$SETTINGS"
+        insert_before_line "\"Edit\"" "      \"Bash(make *)\"," "$SETTINGS"
       fi
       $QUIET || echo "  ⚙️  Added 'make' to settings.json permissions"
     fi
@@ -439,7 +445,7 @@ if [ -f "$SETTINGS" ]; then
     for TOOL in "docker compose" "docker build" "docker run" "docker logs" "docker ps" "docker exec"; do
       if ! grep -qF "Bash($TOOL " "$SETTINGS" 2>/dev/null; then
         if ! $DRY_RUN; then
-          sed_inplace "/\"Edit\"/i\\      \"Bash($TOOL *)\"," "$SETTINGS"
+          insert_before_line "\"Edit\"" "      \"Bash($TOOL *)\"," "$SETTINGS"
         fi
       fi
     done

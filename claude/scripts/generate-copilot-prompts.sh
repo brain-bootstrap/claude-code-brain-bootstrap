@@ -93,10 +93,8 @@ convert_command() {
   fi
 
   # Extract frontmatter values
-  local description effort dmi allowed_tools argument_hint
+  local description allowed_tools argument_hint
   description="$(get_frontmatter "$cmd_file" 'description')"
-  effort="$(get_frontmatter "$cmd_file" 'effort')"
-  dmi="$(get_frontmatter "$cmd_file" 'disable-model-invocation')"
   allowed_tools="$(get_frontmatter "$cmd_file" 'allowed-tools')"
   argument_hint="$(get_frontmatter "$cmd_file" 'argument-hint')"
 

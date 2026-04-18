@@ -127,7 +127,7 @@ The install script **auto-detects** whether your repo is a fresh install or an u
 
 | Scenario                                                              | What happens                                                                                                                                                                      |
 | :-------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Fresh repo** (nothing Claude-related)                               | Copies the full template — all 100+ files                                                                                                                                         |
+| **Fresh repo** (nothing Claude-related)                               | Copies the full template — all 200+ files (198 without `--copilot`, 211 with)                                                                                                     |
 | **Existing Brain** (previous bootstrap)                               | Updates infrastructure (scripts, bootstrap process), adds missing components — **never overwrites** your `CLAUDE.md`, `lessons.md`, architecture docs, settings, or any user file |
 | **Hand-crafted config** (your own `CLAUDE.md`, `claude/`, `.claude/`) | Adds Brain structure **around** your existing files — every file you created stays untouched                                                                                      |
 
@@ -231,13 +231,13 @@ The bootstrap is **adaptive** — it runs 8 domain-detection greps and automatic
 
 ## 🖥️ Platform Support
 
-| Platform                     | Status           | Shell                                  | Notes                                                                                                                   |
-| :--------------------------- | :--------------- | :------------------------------------- | :---------------------------------------------------------------------------------------------------------------------- |
-| **Linux**                    | ✅ Native        | bash 4+                                | Zero configuration needed                                                                                               |
-| **macOS**                    | ✅ Native        | bash 3.2+ (system) / bash 5 (Homebrew) | `discover.sh` + `populate-templates.sh` require Bash 4+ (`brew install bash`) — all other scripts work with system bash |
-| **Windows (WSL2)**           | ✅ Recommended   | bash 5 (Ubuntu)                        | Full Linux environment — everything works natively                                                                      |
-| **Windows (Git Bash)**       | ✅ Supported     | bash 4.4+ (MSYS2)                      | Works with default Git for Windows installation                                                                         |
-| **Windows (CMD/PowerShell)** | ❌ Not supported | —                                      | Claude Code itself requires a Unix shell                                                                                |
+| Platform                     | Status           | Shell                                  | Notes                                                                                                                                      |
+| :--------------------------- | :--------------- | :------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------- |
+| **Linux**                    | ✅ Native        | bash 4+                                | Zero configuration needed                                                                                                                  |
+| **macOS**                    | ✅ Native        | bash 3.2+ (system) / bash 5 (Homebrew) | `discover.sh` + `populate-templates.sh` require Bash 4+. Fix: `brew install bash && export PATH="$(brew --prefix)/bin:$PATH"`, then re-run |
+| **Windows (WSL2)**           | ✅ Recommended   | bash 5 (Ubuntu)                        | Full Linux environment — everything works natively                                                                                         |
+| **Windows (Git Bash)**       | ✅ Supported     | bash 4.4+ (MSYS2)                      | Works with default Git for Windows installation                                                                                            |
+| **Windows (CMD/PowerShell)** | ❌ Not supported | —                                      | Claude Code itself requires a Unix shell                                                                                                   |
 
 > **Required tools:** `git`, `bash` ≥ 3.2 (≥ 4 for `/bootstrap`), `jq` (safety hooks + discovery engine depend on it).
 >
@@ -271,7 +271,7 @@ Brain replaces advisory text with real mechanisms:
 | 🧠 **Best model per task — local LLMs included**              | Agents declare their optimal model (opus for security audit, session model for research) and fall back gracefully. Works with Anthropic API, Bedrock, Vertex, **Ollama, LM Studio, any local endpoint**. Protocol auto-scales to model capability |
 | 🤝 **One brain, three AI tools**                              | Write knowledge once → Claude Code, GitHub Copilot, and any LLM all read it — switch tools without starting over                                                                                                                                  |
 
-> 🎯 **100+ files isn't complexity. It's the minimum architecture where instructions become guarantees.**
+> 🎯 **200+ files isn't complexity. It's the minimum architecture where instructions become guarantees.**
 
 ---
 
@@ -297,7 +297,7 @@ Your stack not listed? [It takes one PR to add it](#-contributing). 🙌
 
 ## 🧠 How It Works Under the Hood
 
-Claude Code Brain is **100+ files** of structured configuration that live in your repo, version-controlled alongside your code. It's not a wrapper, not a plugin, not a SaaS product — it's **a knowledge architecture** that teaches your AI assistant how your project actually works.
+Claude Code Brain is **200+ files** of structured configuration that live in your repo, version-controlled alongside your code. It's not a wrapper, not a plugin, not a SaaS product — it's **a knowledge architecture** that teaches your AI assistant how your project actually works.
 
 ```
 Your repo
@@ -483,7 +483,7 @@ Question                                    Tool                         How
 "Where did my tokens go?"                   codeburn                     codeburn report -p 7days
 "Rename AuthService across all files"       serena                       rename_symbol() — atomic multi-file
 Every bash command Claude runs              rtk                          transparent rewrite, no config needed
-Every Claude reply (terse mode)             caveman                      SessionStart hook toggle
+Every Claude reply (terse mode)             caveman                      SessionStart hook / /caveman prompt
 ──────────────────────────────────────────────────────────────────────────────────
 ```
 
@@ -567,7 +567,7 @@ Yes — Linux, macOS, and Windows (WSL2 / Git Bash) are all supported. Three lay
 2. **`portability-lint.sh`** — CI check that scans every `.sh` file for 9 known GNU-only patterns and fails the build if any slip through (e.g., `sed -i ''` without platform guard, `readlink -f` without fallback).
 3. **`integration-test.sh`** — 17 assertions covering FRESH install, UPGRADE, `--check` mode, and 3 guard scenarios, run on all 3 platforms in CI.
 
-macOS note: `discover.sh` and `populate-templates.sh` require Bash 4+ (`brew install bash`) — all other scripts work with the system bash 3.2. `jq` is needed for safety hooks and JS/TS discovery (`brew install jq` on macOS, pre-installed on most Linux distros and Git Bash). `awk` is POSIX-standard — always available. Run `bash install.sh --check` to verify your environment before installing.
+macOS note: `discover.sh` and `populate-templates.sh` require Bash 4+. Fix: `brew install bash && export PATH="$(brew --prefix)/bin:$PATH"`, then re-run — all other scripts work with system bash 3.2. `jq` is needed for safety hooks and JS/TS discovery (`brew install jq` on macOS, pre-installed on most Linux distros and Git Bash). `awk` is POSIX-standard — always available. Run `bash install.sh --check` to verify your environment before installing.
 
 </details>
 

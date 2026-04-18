@@ -17,15 +17,15 @@ You're about to improve something that thousands of developers use every day to 
 
 ## 🧭 What Can I Contribute?
 
-| Area | Examples | Difficulty |
-|:-----|:--------|:----------:|
-| 🔍 **Stack detection** | New language, framework, or package manager in `discover.sh` | 🟢 Easy |
-| 📚 **Documentation** | Fix a typo, improve clarity, add a worked example | 🟢 Easy |
-| ⚡ **Slash commands** | New workflow command in `.claude/commands/` | 🟡 Medium |
-| 📏 **Path-scoped rules** | New domain rule in `.claude/rules/` | 🟡 Medium |
-| 🪝 **Lifecycle hooks** | Safety patterns, quality gates in `.claude/hooks/` | 🟠 Advanced |
+| Area                      | Examples                                                        | Difficulty  |
+| :------------------------ | :-------------------------------------------------------------- | :---------: |
+| 🔍 **Stack detection**    | New language, framework, or package manager in `discover.sh`    |   🟢 Easy   |
+| 📚 **Documentation**      | Fix a typo, improve clarity, add a worked example               |   🟢 Easy   |
+| ⚡ **Slash commands**     | New workflow command in `.claude/commands/`                     |  🟡 Medium  |
+| 📏 **Path-scoped rules**  | New domain rule in `.claude/rules/`                             |  🟡 Medium  |
+| 🪝 **Lifecycle hooks**    | Safety patterns, quality gates in `.claude/hooks/`              | 🟠 Advanced |
 | 🤖 **Subagents / Skills** | New AI agent or skill in `.claude/agents/` or `.claude/skills/` | 🟠 Advanced |
-| 🐛 **Bug fixes** | Something broken? Fix it! | Varies |
+| 🐛 **Bug fixes**          | Something broken? Fix it!                                       |   Varies    |
 
 > 🎯 **Golden rule:** All contributions must be **domain-agnostic**. No project-specific content — this is a universal template that works for any repo, any language, any team.
 
@@ -48,6 +48,7 @@ git checkout -b feat/my-awesome-contribution
 ```
 
 Use a descriptive branch name:
+
 - `feat/discover-elixir` — adding Elixir detection
 - `fix/hook-timeout` — fixing a hook timeout issue
 - `docs/improve-faq` — improving documentation
@@ -56,15 +57,15 @@ Use a descriptive branch name:
 
 Follow the patterns already in the codebase:
 
-| If you're adding… | Look at these for reference |
-|:-------------------|:--------------------------|
-| A new language in `discover.sh` | Search for an existing language (e.g., `Python`) and follow the same pattern |
-| A slash command | Any file in `.claude/commands/` — copy the structure |
-| A lifecycle hook | Any `.sh` file in `.claude/hooks/` — same structure + register in `.claude/settings.json` |
-| A path-scoped rule | `.claude/rules/_template-domain-rule.md` — the template is ready for you |
-| A worked example | `claude/_examples/` — three examples to follow |
-| A GitHub Copilot instruction | `.github/instructions/_template.instructions.md` |
-| A reusable prompt | `.github/prompts/_template.prompt.md` |
+| If you're adding…               | Look at these for reference                                                               |
+| :------------------------------ | :---------------------------------------------------------------------------------------- |
+| A new language in `discover.sh` | Search for an existing language (e.g., `Python`) and follow the same pattern              |
+| A slash command                 | Any file in `.claude/commands/` — copy the structure                                      |
+| A lifecycle hook                | Any `.sh` file in `.claude/hooks/` — same structure + register in `.claude/settings.json` |
+| A path-scoped rule              | `.claude/rules/_template-domain-rule.md` — the template is ready for you                  |
+| A worked example                | `claude/_examples/` — three examples to follow                                            |
+| A GitHub Copilot instruction    | `.github/instructions/_template.instructions.md`                                          |
+| A reusable prompt               | `.github/prompts/_template.prompt.md`                                                     |
 
 ### Step 4 — Run the validator
 
@@ -93,6 +94,7 @@ git commit -m "feat: add Elixir detection to discover.sh"
 ```
 
 Follow [Conventional Commits](https://www.conventionalcommits.org/):
+
 - `feat:` — new feature
 - `fix:` — bug fix
 - `docs:` — documentation only
@@ -145,6 +147,89 @@ All three must pass before your PR can be reviewed.
 - **Line width**: 120 characters max
 - **Naming**: `kebab-case` for files, `UPPER_SNAKE` for env vars and placeholders
 
+### 🌍 Cross-Platform & Cross-IDE Compatibility
+
+Brain Bootstrap must work identically on **macOS** (Apple Silicon + Intel), **Linux** (Ubuntu, Debian, Fedora, Arch), and in **any IDE terminal** (plain shell, Claude Code, VS Code Copilot agent mode). Every shell script contribution must follow these rules:
+
+#### Shell portability rules
+
+| Pattern                           | Problem                                 | Use instead                              |
+| :-------------------------------- | :-------------------------------------- | :--------------------------------------- |
+| `sed -i 's/…'`                    | GNU/BSD incompatible                    | `sed_inplace` from `_platform.sh`        |
+| `sed -i '/line/i\text'`           | BSD insert syntax differs               | `insert_before_line` from `_platform.sh` |
+| `timeout N cmd`                   | Missing on macOS                        | `run_with_timeout` from `_platform.sh`   |
+| `readlink -f`                     | GNU-only                                | `realpath` or `cd … && pwd`              |
+| `grep -P`                         | GNU-only, no PCRE on macOS              | `grep -E` (ERE)                          |
+| `stat --format` / `stat -c`       | GNU-only                                | `stat -f` (BSD) or avoid                 |
+| `date --date=` / `date -d`        | GNU-only                                | `date -r` (BSD) or avoid                 |
+| `echo -e`                         | Not POSIX (dash/ash print literal `-e`) | `printf '%b\n'`                          |
+| `head -n -N`                      | GNU-only (negative count)               | `awk` or `wc -l` + `head`                |
+| `declare -A` (associative arrays) | Requires bash 4+                        | Guard with auto-upgrade or `if`          |
+
+> **Rule of thumb:** If it requires GNU coreutils, it needs a wrapper in `_platform.sh` or an alternative approach. The `portability-lint.sh` CI check catches the most common violations automatically.
+
+#### Platform abstraction layer
+
+All platform-specific logic lives in `claude/scripts/_platform.sh`. Source it at the top of any script that needs portable `sed`, `timeout`, or OS detection:
+
+```bash
+source "$(dirname "$0")/_platform.sh"
+```
+
+It provides:
+
+- `$BRAIN_PLATFORM` — `darwin` or `linux`
+- `sed_inplace FILE 's/old/new/'` — portable `sed -i`
+- `insert_before_line FILE LINE_NUMBER TEXT` — portable insert-before
+- `run_with_timeout SECONDS COMMAND…` — portable `timeout`
+
+#### Bash version handling
+
+macOS ships bash 3.2 (2007). Scripts using bash 4+ features (`declare -A`, `${var,,}`, `|&`) must include the auto-upgrade preamble:
+
+```bash
+# Auto-upgrade to Homebrew bash if system bash is too old (macOS ships 3.2)
+if [ "${BASH_VERSINFO[0]}" -lt 4 ]; then
+  for _try_bash in /opt/homebrew/bin/bash /usr/local/bin/bash; do
+    if [ -x "$_try_bash" ] && "$_try_bash" -c 'echo ok' &>/dev/null; then
+      exec "$_try_bash" "$0" "$@"
+    fi
+  done
+  echo "ERROR: Bash 4+ required. Install: brew install bash" >&2; exit 1
+fi
+```
+
+#### IDE terminal detection
+
+Scripts that have interactive prompts **must detect AI agent terminals** and avoid hanging. Setup-plugins.sh implements this pattern:
+
+```bash
+is_ai_agent() {
+  # Claude Code env vars (works in any IDE — CLI, JetBrains, VS Code)
+  [ -n "${CLAUDE_CODE:-}" ] || [ -n "${ANTHROPIC_MODEL:-}" ] && return 0
+  # VS Code / Copilot env vars
+  [ "${TERM_PROGRAM:-}" = "vscode" ] && return 0
+  # JetBrains integrated terminal
+  case "${TERMINAL_EMULATOR:-}" in JetBrains-*) return 0 ;; esac
+  return 1
+}
+```
+
+In AI agent mode, **never use bare `read`** — always provide a `--strategy=` flag or default. See `setup-plugins.sh` for the reference implementation.
+
+#### CI matrix & Fedora coverage
+
+CI runs on **Ubuntu, macOS, and Windows** (see `.github/workflows/ci.yml`). Fedora, Arch, Alpine, and other distros are not in the matrix — but are covered by:
+
+1. **`portability-lint.sh`** — catches GNU-only patterns at CI time
+2. **ShellCheck** — detects bashisms and non-portable constructs
+3. **`_platform.sh`** — abstracts all OS-specific calls so scripts never touch `sed -i`, `timeout` etc. directly
+4. **No distro-specific package manager calls** — `install.sh --check` reports prerequisites but never calls `apt`, `dnf`, `brew`, or `pacman` itself
+
+> **Why not test on Fedora in CI?** GitHub Actions doesn't offer Fedora runners natively. Adding Docker-based Fedora tests is welcome as a contribution! The defense-in-depth approach (lint + shellcheck + abstraction layer) catches 99% of issues without a dedicated runner.
+
+If your contribution uses any command that might behave differently across distros, add a portability check to `portability-lint.sh` — one line protects the project forever.
+
 ---
 
 ## 🔍 Adding a Language to `discover.sh`
@@ -177,18 +262,21 @@ fi
 
 ```markdown
 ---
-description: "One-line description of what this command does"
+description: 'One-line description of what this command does'
 ---
 
 ## What this does
+
 Explain the command purpose.
 
 ## Steps
+
 1. First action
 2. Second action
 3. Final action
 
 ## Output format
+
 Describe expected output.
 ```
 
@@ -228,9 +316,9 @@ Found a bug? Something confusing in the docs? Got a feature idea?
 
 👉 **[Open an issue](https://github.com/y-abs/claude-code-brain-bootstrap/issues/new/choose)** — pick the right template:
 
-| Template | When to use |
-|:---------|:-----------|
-| 🐛 **Bug Report** | Something isn't working — crashes, wrong output, broken hooks |
+| Template               | When to use                                                         |
+| :--------------------- | :------------------------------------------------------------------ |
+| 🐛 **Bug Report**      | Something isn't working — crashes, wrong output, broken hooks       |
 | ✨ **Feature Request** | You have an idea for a new command, hook, detection, or improvement |
 
 > 💬 **Got a question?** Use [GitHub Discussions](https://github.com/y-abs/claude-code-brain-bootstrap/discussions) instead — issues are for actionable bugs and features.
@@ -273,6 +361,7 @@ git checkout -b release/v<VERSION>
 ```
 
 Update `CHANGELOG.md`:
+
 - Add a new `## [VERSION] — YYYY-MM-DD` entry at the top
 - List all changes since the previous version
 - Keep the format consistent with existing entries
@@ -298,6 +387,7 @@ git push origin release/v<VERSION>
 ```
 
 Open a PR targeting `main`. The **CI will run 3 checks automatically**:
+
 1. ✅ Template Validation (120 checks)
 2. 🐚 ShellCheck (28 scripts)
 3. 🔗 Link Check (documentation links)
@@ -332,8 +422,3 @@ git push origin v<VERSION>
 <p align="center">
   <strong>Ready? Pick something from the table above and start. We can't wait to see what you build. 🚀</strong>
 </p>
-
-
-
-
-

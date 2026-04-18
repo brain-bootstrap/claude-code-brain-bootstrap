@@ -1,7 +1,7 @@
 #!/bin/bash
 # Copilot Hook: Stop — Quality Gate
 # Reminds to run tests and check for uncommitted changes before ending.
-# Adapted from .claude/hooks/exit-nudge.sh for VS Code.
+# Adapted from .claude/hooks/exit-nudge.sh for GitHub Copilot.
 
 WARNINGS=""
 
@@ -28,5 +28,5 @@ if [ -f "claude/tasks/lessons.md" ]; then
 fi
 
 if [ -n "$WARNINGS" ]; then
-  echo -e "## Exit Checklist$WARNINGS"
+  printf '## Exit Checklist%b\n' "$WARNINGS"
 fi
