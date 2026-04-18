@@ -2,6 +2,7 @@
 name: playwright
 description: Browser automation — navigate, click, fill, snapshot web pages. Use for UI testing, documentation scraping, OAuth flows, web research.
 user-invocable: true
+disable-model-invocation: true
 ---
 
 # Browser Automation with Playwright MCP
@@ -14,14 +15,14 @@ user-invocable: true
 
 ## Decision matrix — when to use playwright vs other tools
 
-| Task | Use |
-|------|-----|
-| "Test this login form end-to-end" | playwright |
-| "Scrape this documentation page" | playwright |
-| "Verify OAuth redirect works" | playwright |
-| "Find code about auth" | cocoindex-code (semantic search) |
-| "What does AuthService call?" | codebase-memory-mcp (structural graph) |
-| "Is this PR safe to ship?" | code-review-graph |
+| Task                              | Use                                    |
+| --------------------------------- | -------------------------------------- |
+| "Test this login form end-to-end" | playwright                             |
+| "Scrape this documentation page"  | playwright                             |
+| "Verify OAuth redirect works"     | playwright                             |
+| "Find code about auth"            | cocoindex-code (semantic search)       |
+| "What does AuthService call?"     | codebase-memory-mcp (structural graph) |
+| "Is this PR safe to ship?"        | code-review-graph                      |
 
 ## Core tools
 

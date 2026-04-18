@@ -2,6 +2,7 @@
 name: codeburn
 description: Use when you want to see token consumption by task type, model, one-shot rate, or USD cost — observability dashboard for Claude Code sessions
 user-invocable: true
+disable-model-invocation: true
 ---
 
 # Codeburn — Token Cost Observability
@@ -23,13 +24,13 @@ codeburn export --format json     # JSON output
 
 ## What It Measures
 
-| Metric | Why it matters |
-|--------|----------------|
-| Tokens by task type (13 categories) | Find which work type is most expensive |
-| One-shot rate per task type | % tasks done in 1 API call vs retry loop |
-| Per-model breakdown | Cost difference between Opus and Sonnet for your actual tasks |
-| USD cost estimate | Real spend per session / project |
-| Input vs output token split | Output tokens cost 3-5× more than input |
+| Metric                              | Why it matters                                                |
+| ----------------------------------- | ------------------------------------------------------------- |
+| Tokens by task type (13 categories) | Find which work type is most expensive                        |
+| One-shot rate per task type         | % tasks done in 1 API call vs retry loop                      |
+| Per-model breakdown                 | Cost difference between Opus and Sonnet for your actual tasks |
+| USD cost estimate                   | Real spend per session / project                              |
+| Input vs output token split         | Output tokens cost 3-5× more than input                       |
 
 ## The 13 Task Categories
 

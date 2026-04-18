@@ -8,6 +8,7 @@ allowed-tools:
   - Read
   - Grep
 effort: medium
+disable-model-invocation: true
 ---
 
 # Issue Triage
@@ -16,12 +17,13 @@ Workflow in 3 phases: automatic audit → opt-in deep analysis → actions with 
 
 ## When to Use
 
-| Skill | Usage | Output |
-|-------|-------|--------|
+| Skill           | Usage                                  | Output                                          |
+| --------------- | -------------------------------------- | ----------------------------------------------- |
 | `/issue-triage` | Triage, analyze, and comment on issues | Action tables + deep analysis + posted comments |
-| `/repo-recap` | General recap to share with the team | Markdown summary (PRs + issues + releases) |
+| `/repo-recap`   | General recap to share with the team   | Markdown summary (PRs + issues + releases)      |
 
 **Triggers**:
+
 - Manually: `/issue-triage` or `/issue-triage all` or `/issue-triage 42 57`
 - Proactively: when >10 open issues without triage, or issue stale >30d detected
 
@@ -71,9 +73,11 @@ gh api "repos/{owner}/{repo}/collaborators" --jq '.[].login'
 ```
 
 **Collaborators fallback** — if `gh api .../collaborators` fails (403/404):
+
 ```bash
 gh pr list --state merged --limit 10 --json author --jq '.[].author.login' | sort -u
 ```
+
 If still ambiguous, ask the user via `AskUserQuestion`.
 
 **Note**: `author` is an object `{login: "..."}` — always extract `.author.login`.
@@ -81,6 +85,7 @@ If still ambiguous, ask the user via `AskUserQuestion`.
 ### Analysis — 6 Dimensions
 
 **1. Categorization** (existing labels > inferred from title/body):
+
 - **Bug**: keywords `crash`, `error`, `fail`, `broken`, `regression`, `wrong`, `unexpected`
 - **Feature**: `add`, `implement`, `support`, `new`, `feat:`
 - **Enhancement**: `improve`, `optimize`, `better`, `enhance`, `refactor`
@@ -88,11 +93,13 @@ If still ambiguous, ask the user via `AskUserQuestion`.
 - **Duplicate Candidate**: see dimension 3 below
 
 **2. Cross-ref PRs**:
+
 - Scan each open PR's `body` for `fixes #N`, `closes #N`, `resolves #N` (case-insensitive regex)
 - Build a map: `issue_number -> [PR numbers]`
 - Issue linked to a merged PR → recommend closing
 
 **3. Duplicate Detection**:
+
 - Normalize titles: lowercase, strip prefixes (`bug:`, `feat:`, `[bug]`, `[feature]`, etc.)
 - **Jaccard on title words**: if score > 60% between two issues → duplicate candidate
 - **Keywords body overlap** > 50% → reinforces the signal
@@ -100,16 +107,19 @@ If still ambiguous, ask the user via `AskUserQuestion`.
 - False positives confirmed/rejected in Phase 2
 
 **4. Risk Classification**:
+
 - **Red**: keywords `CVE`, `vulnerability`, `injection`, `auth bypass`, `security`, `exploit`, `unsafe`, `credentials`, `leak`, `RCE`, `XSS`
 - **Yellow**: `breaking change`, `migration`, `deprecation`, `remove API`, `breaking`, `incompatible`
 - **Green**: everything else
 
 **5. Staleness**:
-- >30d without activity (updatedAt) → **Stale**
-- >90d without activity → **Very Stale**
+
+- > 30d without activity (updatedAt) → **Stale**
+- > 90d without activity → **Very Stale**
 - Compute from current date
 
 **6. Action Recommendations**:
+
 - `Accept & Prioritize`: clear, reproducible, in scope
 - `Label needed`: issue has no labels
 - `Comment needed`: missing info, insufficient body
@@ -160,6 +170,7 @@ If still ambiguous, ask the user via `AskUserQuestion`.
 ### Auto-copy
 
 After displaying the triage table, copy to clipboard:
+
 ```bash
 clip() {
   if command -v pbcopy &>/dev/null; then pbcopy
@@ -169,6 +180,7 @@ clip() {
   fi
 }
 ```
+
 Confirm: `Triage table copied to clipboard.`
 
 ---
@@ -178,6 +190,7 @@ Confirm: `Triage table copied to clipboard.`
 ### Issue Selection
 
 **If argument passed**:
+
 - `"all"` → all open issues
 - Numbers (`"42 57"`) → only those issues
 - No argument → propose via `AskUserQuestion`
@@ -270,6 +283,7 @@ Aggregate all reports. Display a summary after all analyses complete.
 For each analyzed issue, generate actions (comment + labels + close if applicable).
 
 **Rules**:
+
 - Comment language: **English** (international audience)
 - Tone: professional, constructive, factual
 - Never re-label an issue that already has the label
@@ -332,18 +346,18 @@ If "None" → `No actions executed. Workflow complete.`
 
 ## Edge Cases
 
-| Situation | Behavior |
-|-----------|----------|
-| 0 open issues | `No open issues.` + finish |
-| Issue without body | Categorize by title, recommend `Comment needed` |
-| >50 comments | Summarize last 5 only |
-| False positive duplicate | Phase 2 confirms/dismisses — don't act on suspicion alone |
-| Labels already present | Don't re-label, note "label already applied" |
-| Collaborator's issue | Never auto-close candidate |
-| GitHub API rate limit | Reduce `--limit`, notify user |
-| PR merged → issue still open | Recommend closing the issue |
-| Issue with no activity >90d | Very Stale — propose close with respectful message |
-| Duplicate confirmed in Phase 2 | Post comment + close in favor of the original issue |
+| Situation                      | Behavior                                                  |
+| ------------------------------ | --------------------------------------------------------- |
+| 0 open issues                  | `No open issues.` + finish                                |
+| Issue without body             | Categorize by title, recommend `Comment needed`           |
+| >50 comments                   | Summarize last 5 only                                     |
+| False positive duplicate       | Phase 2 confirms/dismisses — don't act on suspicion alone |
+| Labels already present         | Don't re-label, note "label already applied"              |
+| Collaborator's issue           | Never auto-close candidate                                |
+| GitHub API rate limit          | Reduce `--limit`, notify user                             |
+| PR merged → issue still open   | Recommend closing the issue                               |
+| Issue with no activity >90d    | Very Stale — propose close with respectful message        |
+| Duplicate confirmed in Phase 2 | Post comment + close in favor of the original issue       |
 
 ---
 

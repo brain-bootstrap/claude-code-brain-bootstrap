@@ -2,6 +2,7 @@
 name: serena
 description: Use when renaming symbols across files, finding all references to a function/class, moving code between files, or inlining variables — LSP-backed atomic multi-file refactoring
 user-invocable: true
+disable-model-invocation: true
 ---
 
 # Serena — LSP-Backed Symbol Refactoring
@@ -12,15 +13,15 @@ user-invocable: true
 
 ## Decision Matrix
 
-| Question | Use |
-|----------|-----|
-| "Rename `AuthService` everywhere" | `serena` — `rename_symbol` |
-| "Find all callers of `login()`" | `serena` — `find_references` |
-| "Move `UserMapper` to another file" | `serena` — `move_symbol` |
-| "Inline the `MAX_RETRIES` constant" | `serena` — `inline_symbol` |
-| "Find code about rate limiting" | `cocoindex-code` — semantic meaning |
+| Question                              | Use                                           |
+| ------------------------------------- | --------------------------------------------- |
+| "Rename `AuthService` everywhere"     | `serena` — `rename_symbol`                    |
+| "Find all callers of `login()`"       | `serena` — `find_references`                  |
+| "Move `UserMapper` to another file"   | `serena` — `move_symbol`                      |
+| "Inline the `MAX_RETRIES` constant"   | `serena` — `inline_symbol`                    |
+| "Find code about rate limiting"       | `cocoindex-code` — semantic meaning           |
 | "Who calls AuthService in the graph?" | `codebase-memory-mcp` — architecture overview |
-| "Is renaming this safe to ship?" | `code-review-graph` — blast radius |
+| "Is renaming this safe to ship?"      | `code-review-graph` — blast radius            |
 
 ## Key Tools
 
@@ -38,6 +39,7 @@ mcp__serena__get_call_graph(symbol)         — call graph from a symbol
 ## Standard Workflows
 
 **Rename across codebase:**
+
 ```
 1. mcp__serena__find_symbol("OldName")       → confirm it's the right symbol
 2. mcp__serena__find_references("OldName")  → verify scope
@@ -45,12 +47,14 @@ mcp__serena__get_call_graph(symbol)         — call graph from a symbol
 ```
 
 **Move a class to another file:**
+
 ```
 1. mcp__serena__get_symbol_info("MyClass")  → see current location and imports
 2. mcp__serena__move_symbol("MyClass", "src/new_module.py")
 ```
 
 **Find all callers before deleting:**
+
 ```
 1. mcp__serena__find_references("legacyFunction")  → if empty, safe to delete
 ```
@@ -58,6 +62,7 @@ mcp__serena__get_call_graph(symbol)         — call graph from a symbol
 ## Project Config
 
 `.serena/project.yml` (committed to repo) controls which language servers are active:
+
 ```yaml
 languages:
   - python

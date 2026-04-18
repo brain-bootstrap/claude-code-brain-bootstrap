@@ -2,6 +2,7 @@
 name: receiving-code-review
 description: Use when receiving code review feedback — before implementing suggestions, especially if feedback seems unclear or technically questionable
 user-invocable: true
+disable-model-invocation: true
 ---
 
 # Code Review Reception
@@ -28,12 +29,14 @@ WHEN receiving code review feedback:
 ## Forbidden Responses
 
 **NEVER:**
+
 - "You're absolutely right!" (performative agreement)
 - "Great point!" / "Excellent feedback!" (performative)
 - "Let me implement that now" (before verification)
 - Any gratitude expression: "Thanks for...", "Thanks for catching that!"
 
 **INSTEAD:**
+
 - Restate the technical requirement
 - Ask clarifying questions
 - Push back with technical reasoning if wrong
@@ -50,6 +53,7 @@ WHY: Items may be related. Partial understanding = wrong implementation.
 ```
 
 **Example:**
+
 ```
 User: "Fix 1-6"
 You understand 1,2,3,6. Unclear on 4,5.
@@ -61,12 +65,14 @@ RIGHT: "I understand items 1,2,3,6. Need clarification on 4 and 5 before proceed
 ## Source-Specific Handling
 
 ### From the user
+
 - **Trusted** — implement after understanding
 - **Still ask** if scope unclear
 - **No performative agreement**
 - Skip to action or technical acknowledgment
 
 ### From External Reviewers
+
 ```
 BEFORE implementing:
   1. Check: Technically correct for THIS codebase?
@@ -111,6 +117,7 @@ FOR multi-item feedback:
 ## When To Push Back
 
 Push back when:
+
 - Suggestion breaks existing functionality
 - Reviewer lacks full context
 - Violates YAGNI (unused feature)
@@ -119,6 +126,7 @@ Push back when:
 - Conflicts with architectural decisions already made
 
 **How to push back:**
+
 - Use technical reasoning, not defensiveness
 - Ask specific questions
 - Reference working tests/code
@@ -154,14 +162,14 @@ State the correction factually and move on.
 
 ## Common Mistakes
 
-| Mistake | Fix |
-|---------|-----|
-| Performative agreement | State requirement or just act |
-| Blind implementation | Verify against codebase first |
-| Batch without testing | One at a time, test each |
-| Assuming reviewer is right | Check if it breaks things |
-| Avoiding pushback | Technical correctness > comfort |
-| Partial implementation | Clarify all items first |
+| Mistake                      | Fix                                 |
+| ---------------------------- | ----------------------------------- |
+| Performative agreement       | State requirement or just act       |
+| Blind implementation         | Verify against codebase first       |
+| Batch without testing        | One at a time, test each            |
+| Assuming reviewer is right   | Check if it breaks things           |
+| Avoiding pushback            | Technical correctness > comfort     |
+| Partial implementation       | Clarify all items first             |
 | Can't verify, proceed anyway | State limitation, ask for direction |
 
 ## The Bottom Line
