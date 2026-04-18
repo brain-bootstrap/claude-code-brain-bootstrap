@@ -2,6 +2,7 @@
 name: subagent-driven-development
 description: Use when executing implementation plans with independent tasks — dispatches fresh subagents per task with two-stage review (spec compliance, then code quality)
 user-invocable: true
+disable-model-invocation: true
 ---
 
 # Subagent-Driven Development
@@ -23,10 +24,12 @@ Use this after `/squad-plan` generates a parallel workstream plan, OR when you h
 ## The Process
 
 **Setup:**
+
 1. Read plan file once — extract ALL tasks with full text and context
 2. Create tasks in `claude/tasks/todo.md` with all task titles
 
 **Per task loop:**
+
 1. Dispatch **implementer subagent** with: full task text + relevant file context (do NOT make subagent read the plan — provide it directly)
 2. If subagent asks questions → answer completely before letting them proceed
 3. Implementer implements, tests, commits, self-reviews → reports status
@@ -37,27 +40,28 @@ Use this after `/squad-plan` generates a parallel workstream plan, OR when you h
 6. Mark task complete in `claude/tasks/todo.md`
 
 **After all tasks:**
+
 - Dispatch final reviewer across entire implementation
 - Run `/mr` to finalize the branch
 
 ## Handling Implementer Status
 
-| Status | Action |
-|--------|--------|
-| `DONE` | Proceed to spec compliance review |
-| `DONE_WITH_CONCERNS` | Read concerns first — address correctness/scope concerns before review, note observations and proceed |
-| `NEEDS_CONTEXT` | Provide missing context, re-dispatch |
-| `BLOCKED` | Diagnose: context problem → provide context + re-dispatch; needs more reasoning → re-dispatch with opus model; task too large → break into smaller pieces; plan is wrong → escalate to user |
+| Status               | Action                                                                                                                                                                                      |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `DONE`               | Proceed to spec compliance review                                                                                                                                                           |
+| `DONE_WITH_CONCERNS` | Read concerns first — address correctness/scope concerns before review, note observations and proceed                                                                                       |
+| `NEEDS_CONTEXT`      | Provide missing context, re-dispatch                                                                                                                                                        |
+| `BLOCKED`            | Diagnose: context problem → provide context + re-dispatch; needs more reasoning → re-dispatch with opus model; task too large → break into smaller pieces; plan is wrong → escalate to user |
 
 **Never** ignore an escalation or force the same model to retry without changes.
 
 ## Model Selection
 
-| Task | Model |
-|------|-------|
-| Isolated function, clear spec, 1-2 files | haiku |
-| Multi-file, integration concerns | sonnet |
-| Architecture, design, review | opus |
+| Task                                     | Model  |
+| ---------------------------------------- | ------ |
+| Isolated function, clear spec, 1-2 files | haiku  |
+| Multi-file, integration concerns         | sonnet |
+| Architecture, design, review             | opus   |
 
 ## Implementer Prompt Template
 

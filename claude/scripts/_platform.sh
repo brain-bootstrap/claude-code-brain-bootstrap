@@ -17,6 +17,22 @@ else
   sed_inplace() { sed -i "$@"; }
 fi
 
+# ─── Portable sed insert-before-line ──────────────────────────────
+# BSD sed requires a literal newline after `i\`, GNU sed accepts inline text.
+# Usage: insert_before_line "pattern" "text to insert" "file"
+if [ "$BRAIN_PLATFORM" = "macos" ]; then
+  insert_before_line() {
+    local pattern="$1" newtext="$2" file="$3"
+    sed -i '' "/${pattern}/i\\
+${newtext}" "$file"
+  }
+else
+  insert_before_line() {
+    local pattern="$1" newtext="$2" file="$3"
+    sed -i "/${pattern}/i\\${newtext}" "$file"
+  }
+fi
+
 # ─── Portable pgrep (falls back to ps+awk on Git Bash/Windows) ───
 safe_pgrep() {
   local pattern="$1"
@@ -58,6 +74,33 @@ if supports_unicode; then
 else
   PASS_SYM="[OK]"; FAIL_SYM="[FAIL]"; WARN_SYM="[WARN]"
 fi
+
+# ─── Portable timeout (macOS doesn't ship GNU timeout) ────────────
+# Usage: run_with_timeout SECONDS command [args...]
+# Returns: command exit code, or 124 on timeout (same as GNU timeout)
+run_with_timeout() {
+  local _secs="$1"; shift
+  if command -v timeout &>/dev/null; then
+    timeout "$_secs" "$@"
+    return $?
+  else
+    # Pure-bash fallback: run in background, kill after N seconds
+    "$@" &
+    local _pid=$!
+    (
+      sleep "$_secs"
+      kill "$_pid" 2>/dev/null
+    ) &
+    local _watcher=$!
+    wait "$_pid" 2>/dev/null
+    local _rc=$?
+    kill "$_watcher" 2>/dev/null
+    wait "$_watcher" 2>/dev/null
+    # Bash returns 128+signal when killed; map to 124 (timeout convention)
+    if [ $_rc -ge 128 ]; then return 124; fi
+    return $_rc
+  fi
+}
 
 # ─── Windows path normalization ───────────────────────────────────
 if [ "$BRAIN_PLATFORM" = "windows" ] && [ -n "${CLAUDE_PROJECT_DIR:-}" ]; then

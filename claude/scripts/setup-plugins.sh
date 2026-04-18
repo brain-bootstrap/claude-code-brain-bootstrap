@@ -1,12 +1,15 @@
 #!/bin/bash
 # setup-plugins.sh — All-in-one plugin management for bootstrap
 # Handles: strategy selection → per-plugin install/skip → verify → update CLAUDE.md
-# Usage: bash claude/scripts/setup-plugins.sh [--lite] [--yes] [--interactive|--non-interactive] [--strategy=STRATEGY] [project-dir]
+# Usage: bash claude/scripts/setup-plugins.sh [FLAGS] [project-dir]
 #   --lite             Skip heavy plugins (graphify, cocoindex, code-review-graph ~1-3 GB total)
 #   --yes              Non-interactive, auto-accept all plugins (ideal for CI and AI orchestration)
 #   --interactive      Prompt user for plugin strategy + per-plugin confirmation (default when TTY)
-#   --non-interactive  Never prompt; respect SKIP_* env vars (default in CI / piped input)
-#   --strategy=none|full|recommended|personalize  Pre-set strategy (skips strategy prompt)
+#   --non-interactive  Never prompt; respect SKIP_* env vars (default in CI / piped input / Claude Code)
+#   --strategy=none|full|all|recommended|personalize  Pre-set strategy (skips strategy prompt)
+#   --skip=plugin1,plugin2  Skip specific plugins (names: claude-mem, graphify, rtk, cocoindex/coco,
+#                           crg/code-review-graph, cbm/codebase-memory, playwright, codeburn, caveman, serena)
+# Auto-detects Claude Code environment and forces non-interactive mode (no hanging on prompts).
 # Safe: no error breaks the flow. Exits cleanly if claude CLI not available.
 
 # ─── Source guard — prevent env corruption if sourced ─────────────
@@ -23,6 +26,7 @@ set -o pipefail
 LITE_MODE=""
 INTERACTIVE_FLAG=""   # "", "interactive", or "non-interactive"
 PLUGIN_STRATEGY=""    # "", "none", "full", "recommended", "personalize"
+SKIP_LIST=""          # comma-separated plugin names to skip (e.g., --skip=graphify,cocoindex)
 PROJECT_DIR=""
 
 for arg in "$@"; do
@@ -33,9 +37,11 @@ for arg in "$@"; do
     --non-interactive)      INTERACTIVE_FLAG="non-interactive" ;;
     --strategy=none)        PLUGIN_STRATEGY="none" ;;
     --strategy=full)        PLUGIN_STRATEGY="full" ;;
+    --strategy=all)         PLUGIN_STRATEGY="full" ;;  # alias
     --strategy=recommended) PLUGIN_STRATEGY="recommended" ;;
     --strategy=personalize) PLUGIN_STRATEGY="personalize" ;;
-    --strategy=*)           echo "⚠️  Unknown strategy: $arg (valid: none, full, recommended, personalize)" >&2 ;;
+    --strategy=*)           echo "⚠️  Unknown strategy: $arg (valid: none, full, all, recommended, personalize)" >&2 ;;
+    --skip=*)               SKIP_LIST="${arg#--skip=}" ;;
     -*)                     echo "⚠️  Unknown flag: $arg" >&2 ;;
     *)                      PROJECT_DIR="$arg" ;;
   esac
@@ -43,17 +49,81 @@ done
 PROJECT_DIR="${PROJECT_DIR:-.}"
 cd "$PROJECT_DIR" || exit 1
 
+# ─── Apply --skip= list (maps names to SKIP_* env vars) ───────────
+if [ -n "$SKIP_LIST" ]; then
+  IFS=',' read -ra _SKIP_ITEMS <<< "$SKIP_LIST"
+  for _item in "${_SKIP_ITEMS[@]}"; do
+    case "$_item" in
+      claude-mem|claudemem|mem)          SKIP_CLAUDE_MEM=1 ;;
+      graphify)                          SKIP_GRAPHIFY=1 ;;
+      rtk)                               SKIP_RTK=1 ;;
+      cocoindex|coco)                    SKIP_COCOINDEX=1 ;;
+      code-review-graph|crg)             SKIP_CRG=1 ;;
+      codebase-memory|codebase-memory-mcp|cbm) SKIP_CBM=1 ;;
+      playwright|playwright-mcp)         SKIP_PLAYWRIGHT=1 ;;
+      codeburn)                          SKIP_CODEBURN=1 ;;
+      caveman)                           SKIP_CAVEMAN=1 ;;
+      serena)                            SKIP_SERENA=1 ;;
+      *) echo "⚠️  Unknown plugin in --skip: $_item" >&2 ;;
+    esac
+  done
+fi
+
 # ─── Interactive mode detection ────────────────────────────────────
-# Default: interactive when stdin is a TTY and not in CI; non-interactive otherwise.
+# Default: interactive when stdin is a TTY, not in CI, and not inside an AI agent.
+# Both Claude Code and VS Code Copilot provide a TTY but have NO human on the
+# other end to respond to interactive prompts — detect them and force non-interactive.
+AI_AGENT_ENV=""
+# Claude Code detection
+if [ -n "${CLAUDE_CODE:-}" ] || [ -n "${CLAUDE_CODE_ENTRYPOINT:-}" ] \
+   || [ -n "${ANTHROPIC_MODEL:-}" ] || [ -n "${CLAUDE_CONVERSATION_ID:-}" ]; then
+  AI_AGENT_ENV="claude-code"
+fi
+# VS Code Copilot detection (TERM_PROGRAM=vscode, VSCODE_* env vars)
+if [ -z "$AI_AGENT_ENV" ]; then
+  if [ "${TERM_PROGRAM:-}" = "vscode" ] || [ -n "${VSCODE_GIT_ASKPASS_MAIN:-}" ] \
+     || [ -n "${VSCODE_GIT_IPC_HANDLE:-}" ] || [ -n "${VSCODE_INJECTION:-}" ]; then
+    AI_AGENT_ENV="vscode"
+  fi
+fi
+# JetBrains terminal detection (IntelliJ, WebStorm, PyCharm, etc.)
+if [ -z "$AI_AGENT_ENV" ]; then
+  case "${TERMINAL_EMULATOR:-}" in
+    JetBrains-*) AI_AGENT_ENV="jetbrains" ;;
+  esac
+fi
+
 if [ "$INTERACTIVE_FLAG" = "interactive" ]; then
   INTERACTIVE_MODE=1
 elif [ "$INTERACTIVE_FLAG" = "non-interactive" ]; then
   INTERACTIVE_MODE=""
+elif [ -n "$AI_AGENT_ENV" ]; then
+  # Inside AI agent (Claude Code or VS Code Copilot) — never prompt
+  INTERACTIVE_MODE=""
+  if [ -z "$PLUGIN_STRATEGY" ]; then
+    echo "ℹ️  Detected $AI_AGENT_ENV environment — using recommended strategy (override with --strategy=)" >&2
+    PLUGIN_STRATEGY="recommended"
+  fi
 elif [ -t 0 ] && [ -z "${CI:-}" ]; then
   INTERACTIVE_MODE=1
 else
   INTERACTIVE_MODE=""
 fi
+
+# ─── safe_read — read with timeout (prevents hanging in non-human terminals) ──
+# Usage: safe_read VARNAME TIMEOUT_SEC DEFAULT_VALUE
+# Returns 0 on success, 1 on timeout/failure (VARNAME set to DEFAULT_VALUE)
+safe_read() {
+  local _var="$1" _timeout="$2" _default="$3"
+  local _answer
+  if read -t "$_timeout" -r _answer </dev/tty 2>/dev/null; then
+    eval "$_var=\"\$_answer\""
+    return 0
+  else
+    eval "$_var=\"\$_default\""
+    return 1
+  fi
+}
 
 # ─── Plugin opt-out — set any of these before running to skip that plugin ──
 # export SKIP_CLAUDE_MEM=1   # Skip claude-mem (requires claude CLI)
@@ -130,14 +200,59 @@ ask_plugin() {
   echo "  │    $manual_later"
   echo "  └─────────────────────────────────────────────────────────"
 
-  local answer
+  local answer=""
   printf "  Install %s? [Y/n] " "$plugin_name"
-  read -r answer </dev/tty || answer=""
+  if ! safe_read answer 10 ""; then
+    echo ""
+    echo "  ⏱️  No response (timeout) — installing $plugin_name (default: yes)"
+    answer=""
+  fi
   case "$answer" in
     [Nn]*) eval "$var_name=1"; echo "  ⏭️  $plugin_name skipped — install later with the command above" ;;
     *)     echo "  ✅ $plugin_name will be installed" ;;
   esac
   echo ""
+}
+
+# ─── add_mcp_entry — idempotently add a server to .mcp.json ──────
+# Usage: add_mcp_entry "server-name" '{"command":"cmd","args":["a"]}'
+# Creates .mcp.json if missing. Skips if entry already exists. Uses jq if available, else sed.
+MCP_JSON=".mcp.json"
+add_mcp_entry() {
+  local name="$1" config="$2"
+  # Create minimal .mcp.json if missing
+  if [ ! -f "$MCP_JSON" ]; then
+    printf '{\n  "mcpServers": {}\n}\n' > "$MCP_JSON"
+  fi
+  # Skip if entry already exists
+  if command -v jq &>/dev/null; then
+    if jq -e ".mcpServers.\"$name\"" "$MCP_JSON" &>/dev/null; then
+      return 0
+    fi
+    # Add entry via jq
+    local tmp
+    tmp=$(jq --arg n "$name" --argjson c "$config" '.mcpServers[$n] = $c' "$MCP_JSON") || return 1
+    printf '%s\n' "$tmp" > "$MCP_JSON"
+  else
+    # Fallback: sed-based insert before closing brace (no jq available)
+    if grep -q "\"$name\"" "$MCP_JSON" 2>/dev/null; then
+      return 0
+    fi
+    # Detect if mcpServers is empty ({}) or has existing entries
+    if grep -q '"mcpServers": {}' "$MCP_JSON" 2>/dev/null; then
+      # Empty — replace {} with the entry
+      local entry
+      entry=$(printf '{\n    "%s": %s\n  }' "$name" "$config")
+      sed -i.bak "s|\"mcpServers\": {}|\"mcpServers\": $entry|" "$MCP_JSON" && rm -f "$MCP_JSON.bak"
+    else
+      # Has entries — insert before the last closing brace of mcpServers
+      local entry
+      entry=$(printf ',\n    "%s": %s' "$name" "$config")
+      # Insert before the line containing only "  }" (closing mcpServers)
+      sed -i.bak "/^  }/i\\
+$entry" "$MCP_JSON" && rm -f "$MCP_JSON.bak"
+    fi
+  fi
 }
 
 
@@ -199,7 +314,10 @@ if [ -n "$INTERACTIVE_MODE" ] && [ -z "$PLUGIN_STRATEGY" ]; then
   fi
   echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
   printf "  Your choice [0/1/2/3] (default: 2 — recommended): "
-  read -r STRATEGY_CHOICE </dev/tty || STRATEGY_CHOICE=""
+  if ! safe_read STRATEGY_CHOICE 10 ""; then
+    echo ""
+    echo "  ⏱️  No response (timeout) — using recommended strategy"
+  fi
   case "$STRATEGY_CHOICE" in
     0|[Nn]*)  PLUGIN_STRATEGY="none" ;;
     1|[Ff]*)  PLUGIN_STRATEGY="full" ;;
@@ -213,8 +331,8 @@ elif [ -n "$PLUGIN_STRATEGY" ]; then
   # Strategy set via --strategy= CLI flag
   apply_strategy "$PLUGIN_STRATEGY"
 elif [ -z "$INTERACTIVE_MODE" ] && [ -z "$PLUGIN_STRATEGY" ]; then
-  # Non-interactive without explicit strategy: default to full (backward compat)
-  PLUGIN_STRATEGY="full"
+  # Non-interactive without explicit strategy: default to recommended (safe default)
+  PLUGIN_STRATEGY="recommended"
 fi
 
 # ─── Portable helpers (sed_inplace, safe_pgrep, platform detection)
@@ -256,15 +374,15 @@ else
   fi
 
   # 3. Check if installed; if not, try synchronous install once
-  # timeout guards against TUI hangs in non-TTY environments (Claude Code IntelliJ, CI)
-  timeout 15 claude plugin list > claude/tasks/.plugin-list.log 2>&1 || true
+  # run_with_timeout guards against TUI hangs in non-TTY environments (Claude Code, Copilot, CI)
+  run_with_timeout 15 claude plugin list > claude/tasks/.plugin-list.log 2>&1 || true
   if ! sed 's/\x1b\[[0-9;]*[A-Za-z]//g; s/\r//g' claude/tasks/.plugin-list.log 2>/dev/null | grep -qi 'claude-mem'; then
     echo "  ⏳ Installing claude-mem..."
-    timeout 60 claude plugin install claude-mem@thedotmack > claude/tasks/.plugin-install.log 2>&1 || true
+    run_with_timeout 60 claude plugin install claude-mem@thedotmack > claude/tasks/.plugin-install.log 2>&1 || true
   fi
 
   # 4. Disable claude-mem (quota protection — PostToolUse(*) uses ~48% API quota)
-  timeout 15 claude plugin disable claude-mem@thedotmack > claude/tasks/.plugin-disable.log 2>&1 || true
+  run_with_timeout 15 claude plugin disable claude-mem@thedotmack > claude/tasks/.plugin-disable.log 2>&1 || true
 
   # 5. Kill any running worker process
   # [c] = anti-self-match pattern (prevents pgrep from matching its own command line)
@@ -272,7 +390,7 @@ else
   if [ -n "$WORKER_PIDS" ]; then kill "$WORKER_PIDS" 2>/dev/null || true; fi
 
   # 6. Verify final state
-  timeout 15 claude plugin list > claude/tasks/.plugin-list.log 2>&1 || true
+  run_with_timeout 15 claude plugin list > claude/tasks/.plugin-list.log 2>&1 || true
   CLEAN_LIST=$(sed 's/\x1b\[[0-9;]*[A-Za-z]//g; s/\r//g' claude/tasks/.plugin-list.log 2>/dev/null | grep -v '^[[:space:]]*$' || true)
   if echo "$CLEAN_LIST" | grep -qi 'claude-mem'; then
     CLAUDE_MEM_STATUS="installed (disabled)"
@@ -403,16 +521,23 @@ if command -v rtk &>/dev/null; then
   RTK_STATUS="$RTK_VERSION installed · hook active"
 
 elif command -v cargo &>/dev/null; then
-  # cargo available — auto-install rtk (same pattern as graphify via pip)
-  echo "  ⏳ Installing rtk via cargo (this may take 1-2 min — compiling from source)..."
-  if cargo install rtk --quiet 2>/dev/null; then
+  # cargo found — install rtk (compiles from source, typically 3-7 min)
+  echo "  ⏳ Installing rtk via cargo (compiling from source — typically 3-7 min, please wait)..."
+  if run_with_timeout 600 cargo install rtk 2>&1 | tail -8; then
     RTK_VERSION=$(rtk --version 2>/dev/null | head -1 | awk '{print $2}' || echo "unknown")
     echo "  ✅ rtk $RTK_VERSION installed"
     echo "  ✅ rtk-rewrite hook active (.claude/settings.json already wired)"
     RTK_STATUS="$RTK_VERSION installed · hook active"
   else
-    echo "  ⚠️  cargo install rtk failed — install manually: cargo install rtk"
-    RTK_STATUS="install failed — manual: cargo install rtk"
+    RTK_EXIT=$?
+    if [ "$RTK_EXIT" -eq 124 ]; then
+      echo "  ⚠️  cargo install rtk timed out (>10 min) — install manually: cargo install rtk"
+      echo "     The hook in .claude/settings.json is ready — rtk activates once installed."
+      RTK_STATUS="install timed out — manual: cargo install rtk"
+    else
+      echo "  ⚠️  cargo install rtk failed — install manually: cargo install rtk"
+      RTK_STATUS="install failed — manual: cargo install rtk"
+    fi
   fi
 
 else
@@ -450,6 +575,7 @@ echo "🔌 Plugin Setup — codebase-memory-mcp (structural graph)..."
 if command -v codebase-memory-mcp &>/dev/null; then
   CBM_VERSION=$(codebase-memory-mcp --version 2>/dev/null | head -1 | awk '{print $NF}' || echo "unknown")
   echo "  ✅ codebase-memory-mcp $CBM_VERSION already installed"
+  add_mcp_entry "codebase-memory-mcp" '{"command":"codebase-memory-mcp","args":[]}'
   CBM_STATUS="$CBM_VERSION installed"
 
 elif command -v curl &>/dev/null; then
@@ -464,6 +590,7 @@ elif command -v curl &>/dev/null; then
     # Enable auto-index: index new projects automatically on MCP connection
     codebase-memory-mcp config set auto_index true 2>/dev/null || true
     echo "  ✅ auto_index enabled"
+    add_mcp_entry "codebase-memory-mcp" '{"command":"codebase-memory-mcp","args":[]}'
     CBM_STATUS="$CBM_VERSION installed · auto_index on"
   else
     echo "  ⚠️  install.sh failed — install manually:"
@@ -522,6 +649,7 @@ if [ -z "$COCO_PYTHON" ]; then
 elif command -v ccc &>/dev/null; then
   CCC_VERSION=$(ccc --version 2>/dev/null | head -1 || echo "unknown")
   echo "  ✅ cocoindex-code ($CCC_VERSION) already installed"
+  add_mcp_entry "cocoindex-code" '{"type":"stdio","command":"ccc","args":["mcp"]}'
   COCO_STATUS="$CCC_VERSION installed"
 
 else
@@ -531,6 +659,7 @@ else
      || "$COCO_PYTHON" -m pip install 'cocoindex-code[full]' --break-system-packages 2>/dev/null; then
     CCC_VERSION=$(ccc --version 2>/dev/null | head -1 || echo "unknown")
     echo "  ✅ cocoindex-code $CCC_VERSION installed"
+    add_mcp_entry "cocoindex-code" '{"type":"stdio","command":"ccc","args":["mcp"]}'
     COCO_STATUS="$CCC_VERSION installed (local embeddings)"
   else
     echo "  ⚠️  pip install failed — try manually: pip install 'cocoindex-code[full]'"
@@ -637,6 +766,7 @@ if [ -z "$CRG_PYTHON" ]; then
 elif command -v code-review-graph &>/dev/null; then
   CRG_VERSION=$(code-review-graph --version 2>/dev/null | head -1 || echo "unknown")
   echo "  ✅ code-review-graph ($CRG_VERSION) already installed"
+  add_mcp_entry "code-review-graph" '{"type":"stdio","command":"uvx","args":["code-review-graph","serve"]}'
   CRG_STATUS="$CRG_VERSION installed"
 
 else
@@ -648,6 +778,7 @@ else
      || "$CRG_PYTHON" -m pip install 'code-review-graph' -q --break-system-packages 2>/dev/null; then
     CRG_VERSION=$(code-review-graph --version 2>/dev/null | head -1 || echo "unknown")
     echo "  ✅ code-review-graph $CRG_VERSION installed"
+    add_mcp_entry "code-review-graph" '{"type":"stdio","command":"uvx","args":["code-review-graph","serve"]}'
     CRG_STATUS="$CRG_VERSION installed"
   else
     echo "  ⚠️  pip install failed — try manually:"
@@ -685,7 +816,7 @@ if [ -n "$INTERACTIVE_MODE" ]; then
     "LOW-MEDIUM (structured accessibility snapshots, not pixels — no vision model needed)" \
     "Browser automation MCP — navigate, click, fill, snapshot web pages via accessibility tree.
   │ No vision model needed. Use for: UI testing, doc scraping, OAuth flows, web research.
-  │ MCP entry already in .mcp.json — this step pre-installs Chromium browsers." \
+  │ This step installs Chromium browsers and registers the MCP server." \
     "npx playwright install chromium"
 fi
 
@@ -702,7 +833,6 @@ if ! command -v npx &>/dev/null || [ "${NODE_MAJOR:-0}" -lt 18 ]; then
   echo "  ⚠️  playwright-mcp skipped — Node.js 18+ required (found: ${NODE_VERSION:-none})"
   echo "     Upgrade: brew install node  OR  nvm install 18"
   echo "     Then run: npx playwright install chromium"
-  echo "  ℹ️  MCP entry is already in .mcp.json — it will activate automatically after upgrading Node.js"
   PLAYWRIGHT_STATUS="skipped (Node.js ${NODE_VERSION:-not found}, needs 18+)"
 else
   # Check if Chromium is already installed by playwright
@@ -715,17 +845,21 @@ else
 
   if ls "$PLAYWRIGHT_CACHE"/chromium* &>/dev/null 2>&1; then
     echo "  ✅ Playwright Chromium already installed ($PLAYWRIGHT_CACHE)"
-    echo "  ✅ MCP server ready — registered in .mcp.json (command: npx @playwright/mcp@latest)"
+    add_mcp_entry "playwright" '{"type":"stdio","command":"npx","args":["@playwright/mcp@latest"]}'
+    echo "  ✅ MCP server ready (command: npx @playwright/mcp@latest)"
     PLAYWRIGHT_STATUS="chromium installed · MCP registered"
   else
     echo "  ⏳ Installing Playwright Chromium (~300 MB download)..."
     if NO_COLOR=1 npx playwright install chromium 2>&1 | tail -4; then
       echo "  ✅ Playwright Chromium installed"
-      echo "  ✅ MCP server ready — registered in .mcp.json"
+      add_mcp_entry "playwright" '{"type":"stdio","command":"npx","args":["@playwright/mcp@latest"]}'
+      echo "  ✅ MCP server registered"
       PLAYWRIGHT_STATUS="chromium installed · MCP registered"
     else
       echo "  ⚠️  Chromium install failed — run manually: npx playwright install chromium"
-      echo "  ℹ️  MCP server is already registered in .mcp.json — will work once browsers are installed"
+      # Register MCP anyway — npx will work once browsers are installed
+      add_mcp_entry "playwright" '{"type":"stdio","command":"npx","args":["@playwright/mcp@latest"]}'
+      echo "  ℹ️  MCP server registered — will work once browsers are installed"
       PLAYWRIGHT_STATUS="MCP registered · browsers not installed (run: npx playwright install chromium)"
     fi
   fi
@@ -855,7 +989,7 @@ if [ -n "$INTERACTIVE_MODE" ]; then
     "LSP-backed symbol refactoring — rename/move/inline across the entire codebase atomically.
   │ Type-aware, 100% recall. Rename a symbol in 50 files in one call.
   │ Fills gap: cocoindex/codebase-memory find code; serena transforms it." \
-    "Add to .mcp.json: {\"serena\": {\"type\": \"stdio\", \"command\": \"uvx\", \"args\": [\"serena-agent\", \"--project\", \".\"]}}"
+    "uvx serena-agent --project . (setup-plugins registers the MCP server automatically)"
 fi
 
 if [ -n "$SKIP_SERENA" ]; then
@@ -894,11 +1028,12 @@ else
 
   if [ -z "$SERENA_PYTHON" ]; then
     echo "  ⚠️  serena skipped — Python 3.11+ not found"
-    echo "     Install: brew install python@3.11 (serena MCP entry is already in .mcp.json)"
-    SERENA_STATUS="skipped (Python 3.11+ not found — MCP entry ready)"
+    echo "     Install: brew install python@3.11"
+    SERENA_STATUS="skipped (Python 3.11+ not found)"
   else
     # Verify serena-agent is available (uvx downloads on first use — this is a dry-run check)
-    echo "  ✅ serena MCP entry registered in .mcp.json (command: uvx serena-agent)"
+    add_mcp_entry "serena" '{"type":"stdio","command":"uvx","args":["serena-agent","--project","."]}'
+    echo "  ✅ serena MCP entry registered (command: uvx serena-agent)"
     echo "  ℹ️  Language servers auto-install on first use (~30s for pyright/typescript-language-server)"
     echo "  ℹ️  Project config: .serena/project.yml (edit to add/remove languages)"
     echo "  ℹ️  Key tools: find_symbol, find_references, rename_symbol, move_symbol, inline_symbol"

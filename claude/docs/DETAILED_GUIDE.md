@@ -1358,7 +1358,7 @@ Brain Bootstrap works on **Linux, macOS, and Windows** (WSL2 / Git Bash).
 | `discover.sh`, `populate-templates.sh` | **4.0+**     | Associative arrays (`declare -A`) |
 | All other scripts (25+)                | **3.2+**     | Standard bash features only       |
 
-> macOS ships with Bash 3.2. Install Bash 5 via `brew install bash` for full `/bootstrap` support. All hook scripts work with system bash.
+> macOS ships with Bash 3.2. Fix: `brew install bash && export PATH="$(brew --prefix)/bin:$PATH"`, then re-run. Restart your terminal to make it permanent. All hook scripts work with system bash.
 
 ### How `_platform.sh` Works
 
@@ -1409,7 +1409,7 @@ Example output:
   ✅ git git version 2.44.0
   ✅ jq jq-1.7.1
   ⚠️  bash 3.2.57(1)-release (<4 — discover.sh and populate-templates.sh need Bash 4+)
-     macOS: brew install bash
+     Fix: brew install bash && export PATH="$(brew --prefix)/bin:$PATH"
 ```
 
 ### Portability Lint (`portability-lint.sh`)
