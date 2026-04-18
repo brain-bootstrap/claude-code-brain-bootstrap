@@ -2,6 +2,7 @@
 name: writing-skills
 description: Use when creating new skill files, editing existing SKILL.md files, or reviewing skills before deployment — covers structure, CSO (discoverability), and quality standards
 user-invocable: true
+disable-model-invocation: true
 ---
 
 # Writing Skills
@@ -16,6 +17,7 @@ A **skill** is a reference guide for proven techniques, patterns, or tools. Skil
 ## SKILL.md Structure
 
 **Frontmatter (YAML):**
+
 - Required fields: `name`, `description`
 - Max 1024 characters total
 - `name`: Letters, numbers, hyphens only — no parentheses or special chars
@@ -25,24 +27,29 @@ A **skill** is a reference guide for proven techniques, patterns, or tools. Skil
 ---
 name: skill-name
 description: Use when [specific triggering conditions and symptoms]
-user-invocable: true   # only if user should invoke with /skill-name
+user-invocable: true # only if user should invoke with /skill-name
 ---
 
 # Skill Name
 
 ## Overview
+
 Core principle in 1-2 sentences.
 
 ## When to Use
+
 Bullet list with symptoms and use cases. When NOT to use.
 
 ## Core Pattern
+
 Before/after comparison or workflow steps.
 
 ## Quick Reference
+
 Table or bullets for scanning.
 
 ## Common Mistakes
+
 What goes wrong + fixes.
 ```
 
@@ -67,6 +74,7 @@ description: Use when executing implementation plans with independent tasks in t
 ```
 
 **Content rules:**
+
 - Start with "Use when..."
 - Include specific symptoms, situations, contexts
 - Technology-agnostic unless skill is technology-specific
@@ -76,6 +84,7 @@ description: Use when executing implementation plans with independent tasks in t
 ### Keyword Coverage
 
 Include words Claude would search for:
+
 - Error messages: "race condition", "ENOTEMPTY", "hook timed out"
 - Symptoms: "flaky", "hanging", "zombie"
 - Tools: actual command names, library names
@@ -84,23 +93,24 @@ Include words Claude would search for:
 
 Skills that load frequently must be concise.
 
-| Skill type | Target word count |
-|------------|-------------------|
-| Frequently-loaded workflows | < 200 words |
-| Other skills | < 500 words |
+| Skill type                  | Target word count |
+| --------------------------- | ----------------- |
+| Frequently-loaded workflows | < 200 words       |
+| Other skills                | < 500 words       |
 
 Techniques:
+
 - Reference `--help` instead of documenting all flags inline
 - Cross-reference other skills instead of repeating their content
 - One excellent code example beats five mediocre ones
 
 ## Skill Types
 
-| Type | Description | Examples |
-|------|-------------|---------|
-| Technique | Concrete method with steps | `root-cause-trace`, `cross-layer-check` |
-| Pattern | Way of thinking about problems | `careful`, `tdd` |
-| Reference | API docs, tool documentation | `playwright`, `cocoindex-code` |
+| Type      | Description                    | Examples                                |
+| --------- | ------------------------------ | --------------------------------------- |
+| Technique | Concrete method with steps     | `root-cause-trace`, `cross-layer-check` |
+| Pattern   | Way of thinking about problems | `careful`, `tdd`                        |
+| Reference | API docs, tool documentation   | `playwright`, `cocoindex-code`          |
 
 ## Directory Structure
 
@@ -129,24 +139,26 @@ Before deploying any skill:
 
 ## Common Mistakes
 
-| Mistake | Fix |
-|---------|-----|
-| Description summarizes workflow | Rewrite as triggering conditions only |
-| Multiple language examples | Pick the most relevant language, one good example |
-| Narrative storytelling | Convert to reusable technique/pattern |
-| Project-specific rules in skill | Move to CLAUDE.md |
-| Generic labels (step1, helper2) | Use semantic names |
-| Flowchart for linear instructions | Use numbered list instead |
-| No entry in README | Add to skills table immediately |
+| Mistake                           | Fix                                               |
+| --------------------------------- | ------------------------------------------------- |
+| Description summarizes workflow   | Rewrite as triggering conditions only             |
+| Multiple language examples        | Pick the most relevant language, one good example |
+| Narrative storytelling            | Convert to reusable technique/pattern             |
+| Project-specific rules in skill   | Move to CLAUDE.md                                 |
+| Generic labels (step1, helper2)   | Use semantic names                                |
+| Flowchart for linear instructions | Use numbered list instead                         |
+| No entry in README                | Add to skills table immediately                   |
 
 ## When to Create a Skill
 
 **Create when:**
+
 - Technique wasn't intuitively obvious
 - You'd reference this again across projects
 - Pattern applies broadly (not project-specific)
 
 **Don't create for:**
+
 - One-off solutions
 - Standard practices well-documented elsewhere
 - Project-specific conventions → CLAUDE.md instead

@@ -1,6 +1,7 @@
 ---
 description: Generate a comprehensive repo recap (PRs, issues, releases) ready to share with the team. Pass "fr" for French output (default is English).
 allowed-tools: Bash Read Grep
+disable-model-invocation: true
 ---
 
 # Repo Recap
@@ -64,14 +65,17 @@ If this fails (permissions), fallback: authors with write/admin access are those
 #### PRs — Categorize into 3 groups:
 
 **Our PRs** (author is a repo collaborator):
+
 - List with PR number (linked), title, size (+additions, files count), status
 
 **External — Reviewable** (manageable size, no major blockers):
+
 - Additions ≤ 1000 AND files ≤ 10
 - No merge conflicts, CI not failing
 - Include: PR link, author, title, size, review status, recommended action
 
 **External — Problematic** (any of: too large, CI failing, overlapping, merge conflict):
+
 - Additions > 1000 OR files > 10
 - OR CI failing (reviewDecision = "CHANGES_REQUESTED" or checks failing)
 - OR touches same files as another open PR (= overlap)
@@ -81,21 +85,24 @@ If this fails (permissions), fallback: authors with write/admin access are those
 
 | Label | Additions |
 | ----- | --------- |
-| XS | < 50 |
-| S | 50-200 |
-| M | 200-500 |
-| L | 500-1000 |
-| XL | > 1000 |
+| XS    | < 50      |
+| S     | 50-200    |
+| M     | 200-500   |
+| L     | 500-1000  |
+| XL    | > 1000    |
 
 Format: `+{additions}, {files} files ({label})` — e.g., `+245, 2 files (S)`
 
 #### Detect overlaps:
+
 Two PRs overlap if they modify the same files. Use `changedFiles` from the JSON data. If >50% file overlap between 2 PRs, flag both as overlapping and cross-reference them.
 
 #### Flag clusters:
+
 If one author has 3+ open PRs, note it as a "cluster" with suggested review order (smallest first, or by dependency chain).
 
 #### Issues — Categorize by status:
+
 - **In progress**: has an associated open PR (match by PR body containing `fixes #N`, `closes #N`, or same topic)
 - **Quick fix**: small scope, actionable (bug reports, small enhancements)
 - **Feature request**: larger scope, needs design discussion
@@ -110,6 +117,7 @@ If no releases found, check merged PRs for release-please pattern (title matchin
 ### 5. Executive Summary
 
 Produce 5-6 bullet points:
+
 - Total open PRs and issues count
 - Active contributors (who has the most PRs/issues)
 - Main risks (oversized PRs, CI failures, merge conflicts)
@@ -120,6 +128,7 @@ Produce 5-6 bullet points:
 ### 6. Format Output
 
 Structure the full recap as Markdown with:
+
 - `# {Repo Name} — Recap {date}` as title (EN) or `# {Repo Name} — Récap au {date}` (FR)
 - Sections separated by `---`
 - All PR/issue numbers as clickable links: `[#123](https://github.com/{owner}/{repo}/pull/123)` for PRs, `.../issues/123` for issues
@@ -128,6 +137,7 @@ Structure the full recap as Markdown with:
 - Cross-references between related PRs and issues (e.g., "Covered by [#131](link)")
 
 **Empty data handling**:
+
 - 0 open PRs → display "No open PRs." (EN) or "Aucune PR ouverte." (FR)
 - 0 open issues → display "No open issues." (EN) or "Aucune issue ouverte." (FR)
 - 0 releases → display "No recent releases." (EN) or "Aucune release récente." (FR)
@@ -164,25 +174,25 @@ Confirm with: "Copied to clipboard." (EN) or "Copié dans le presse-papier." (FR
 
 ### Our PRs
 
-| PR | Title | Size | Status |
-| -- | ----- | ---- | ------ |
+| PR  | Title | Size | Status |
+| --- | ----- | ---- | ------ |
 
 ### External — Reviewable
 
-| PR | Author | Title | Size | Status | Action |
-| -- | ------ | ----- | ---- | ------ | ------ |
+| PR  | Author | Title | Size | Status | Action |
+| --- | ------ | ----- | ---- | ------ | ------ |
 
 ### External — Problematic
 
-| PR | Author | Title | Size | Problem | Action |
-| -- | ------ | ----- | ---- | ------- | ------ |
+| PR  | Author | Title | Size | Problem | Action |
+| --- | ------ | ----- | ---- | ------- | ------ |
 
 ---
 
 ## Open Issues ({count} total)
 
-| # | Author | Topic | Priority |
-| - | ------ | ----- | -------- |
+| #   | Author | Topic | Priority |
+| --- | ------ | ----- | -------- |
 
 ---
 

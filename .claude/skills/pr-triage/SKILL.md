@@ -1,14 +1,13 @@
 ---
 name: pr-triage
-description: >
-  PR triage: audit open PRs, deep review selected ones, draft and post review comments.
-  Args: "all" to review all, PR numbers to focus (e.g. "42 57"), "fr" for French output, no arg = audit only in English.
+description: PR triage — audit open PRs, deep review selected ones, draft and post review comments. Args: "all" to review all, PR numbers to focus (e.g. "42 57"), "fr" for French output, no arg = audit only in English.
 allowed-tools:
   - Bash
   - Read
   - Grep
   - Glob
 effort: medium
+disable-model-invocation: true
 ---
 
 # PR Triage
@@ -17,12 +16,13 @@ Workflow in 3 phases: automatic audit → opt-in deep review → comments with m
 
 ## When to Use
 
-| Skill | Usage | Output |
-|-------|-------|--------|
-| `/pr-triage` | Triage, review, and comment on PRs | Action table + reviews + posted comments |
+| Skill         | Usage                                | Output                                     |
+| ------------- | ------------------------------------ | ------------------------------------------ |
+| `/pr-triage`  | Triage, review, and comment on PRs   | Action table + reviews + posted comments   |
 | `/repo-recap` | General recap to share with the team | Markdown summary (PRs + issues + releases) |
 
 **Triggers**:
+
 - Manually: `/pr-triage` or `/pr-triage all` or `/pr-triage 42 57`
 - Proactively: when >5 open PRs without review, or PR stale >14d detected
 
@@ -65,9 +65,11 @@ gh api "repos/{owner}/{repo}/collaborators" --jq '.[].login'
 ```
 
 **Collaborators fallback** — if `gh api .../collaborators` fails (403/404):
+
 ```bash
 gh pr list --state merged --limit 10 --json author --jq '.[].author.login' | sort -u
 ```
+
 If still ambiguous, ask the user via `AskUserQuestion`.
 
 For each PR, fetch existing reviews AND modified files:
@@ -97,6 +99,7 @@ gh pr view {num} --json files --jq '[.files[].path] | join(",")'
 Size format: `+{additions}/-{deletions}, {files} files ({label})`
 
 **Detections**:
+
 - **Overlaps**: compare file lists across PRs — if >50% files in common → cross-reference
 - **Clusters**: author with 3+ open PRs → suggest review order (smallest first)
 - **Staleness**: no activity since >14d → flag "stale"
@@ -104,6 +107,7 @@ Size format: `+{additions}/-{deletions}, {files} files ({label})`
 - **Reviews**: approved / changes_requested / none
 
 **PR ↔ Issue links**:
+
 - Scan each PR's `body` for `fixes #N`, `closes #N`, `resolves #N` (case-insensitive)
 - If found, display in the table: `Fixes #42` in the Action/Status column
 
@@ -114,6 +118,7 @@ _Our PRs_: author in collaborators list
 _External — Ready_: additions ≤ 1000 AND files ≤ 10 AND `mergeable` ≠ `CONFLICTING` AND CI clean/unstable
 
 _External — Problematic_: any of:
+
 - additions > 1000 OR files > 10
 - OR `mergeable` == `CONFLICTING` (merge conflict)
 - OR CI dirty (statusCheckRollup contains failures)
@@ -149,6 +154,7 @@ _External — Problematic_: any of:
 ### Auto-copy
 
 After displaying the triage table, copy to clipboard:
+
 ```bash
 clip() {
   if command -v pbcopy &>/dev/null; then pbcopy
@@ -158,6 +164,7 @@ clip() {
   fi
 }
 ```
+
 Confirm: `Triage table copied to clipboard.`
 
 ---
@@ -167,6 +174,7 @@ Confirm: `Triage table copied to clipboard.`
 ### PR Selection
 
 **If argument passed**:
+
 - `"all"` → all external PRs
 - Numbers (`"42 57"`) → only those PRs
 - No argument → propose via `AskUserQuestion`
@@ -189,6 +197,7 @@ options:
 ```
 
 **Draft PRs**:
+
 - Excluded from "All external" and "Ready only"
 - Included in "Problematic only" (they need attention)
 - To review a draft: type its number explicitly (e.g., `42`)
@@ -230,6 +239,7 @@ prompt: |
 ```
 
 Fetch diff via:
+
 ```bash
 gh pr diff {num}
 gh pr view {num} --json body,title,author -q '{body: .body, title: .title, author: .author.login}'
@@ -246,6 +256,7 @@ Aggregate all reports. Display a summary after all reviews complete.
 For each reviewed PR, generate a GitHub comment in English.
 
 **Rules**:
+
 - Language: **English** (international audience)
 - Tone: professional, constructive, factual
 - Always include at least 1 positive point
@@ -298,15 +309,15 @@ If "None" → `No comments posted. Workflow complete.`
 
 ## Edge Cases
 
-| Situation | Behavior |
-|-----------|----------|
-| 0 open PRs | `No open PRs.` + finish |
-| Draft PR | Flag in table, skip for review unless explicitly selected |
-| Unknown CI | Display `?` in CI column |
-| Reviewer agent timeout | Show partial error, continue with others |
-| `gh pr diff` empty | Skip that PR, notify user |
-| Very large PR (>5000 additions) | Warn: "Partial review, diff truncated" |
-| Collaborators API 403/404 | Fallback to authors of last 10 merged PRs |
+| Situation                       | Behavior                                                  |
+| ------------------------------- | --------------------------------------------------------- |
+| 0 open PRs                      | `No open PRs.` + finish                                   |
+| Draft PR                        | Flag in table, skip for review unless explicitly selected |
+| Unknown CI                      | Display `?` in CI column                                  |
+| Reviewer agent timeout          | Show partial error, continue with others                  |
+| `gh pr diff` empty              | Skip that PR, notify user                                 |
+| Very large PR (>5000 additions) | Warn: "Partial review, diff truncated"                    |
+| Collaborators API 403/404       | Fallback to authors of last 10 merged PRs                 |
 
 ---
 

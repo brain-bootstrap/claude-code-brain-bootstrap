@@ -21,9 +21,15 @@ fi
 
 # ─── Bash 4+ required (associative arrays — declare -A) ──────────
 if [ "${BASH_VERSINFO[0]:-0}" -lt 4 ]; then
+  # Auto-upgrade: re-exec with Homebrew bash if available (macOS ships bash 3.2)
+  for _brew_bash in /opt/homebrew/bin/bash /usr/local/bin/bash; do
+    if [ -x "$_brew_bash" ] && [ "$("$_brew_bash" -c 'echo ${BASH_VERSINFO[0]}')" -ge 4 ] 2>/dev/null; then
+      exec "$_brew_bash" "$0" "$@"
+    fi
+  done
   echo "❌ bash 4+ required (found: ${BASH_VERSION:-unknown})" >&2
-  echo "   macOS users: brew install bash" >&2
-  echo "   Then re-run: /opt/homebrew/bin/bash $0 $*" >&2
+  echo '   Fix: brew install bash && export PATH="$(brew --prefix)/bin:$PATH"' >&2
+  echo "   Then re-run this command." >&2
   exit 1
 fi
 

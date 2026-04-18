@@ -2,6 +2,7 @@
 name: brainstorming
 description: Use before any new feature, component, or behavioral change — when you need to explore requirements and design before writing code
 user-invocable: true
+disable-model-invocation: true
 ---
 
 # Brainstorming Ideas Into Designs
