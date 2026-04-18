@@ -3,6 +3,7 @@
 audit*
 plan*
 *review*
+mr-*
 
 # Discovery env (regenerated on every bootstrap)
 .discovery.env

@@ -1,8 +1,6 @@
 ---
 name: issue-triage
-description: >
-  Issue triage: audit open issues, categorize, detect duplicates, cross-ref PRs, risk assessment, post comments.
-  Args: "all" for deep analysis of all, issue numbers to focus (e.g. "42 57"), "fr" for French, no arg = audit only in English.
+description: Issue triage — audit open issues, categorize, detect duplicates, cross-ref PRs, risk assessment, post comments. Args: "all" for deep analysis, issue numbers to focus (e.g. "42 57"), "fr" for French, no arg = audit only in English.
 allowed-tools:
   - Bash
   - Read

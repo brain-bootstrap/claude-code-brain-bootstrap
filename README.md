@@ -118,7 +118,7 @@ bash /tmp/brain/install.sh your-repo/
 rm -rf /tmp/brain
 ```
 
-> 🤝 **Copilot users:** add `--copilot` to also generate VS Code Copilot agents, hooks, and prompts:
+> 🤝 **Copilot users:** add `--copilot` to also generate GitHub Copilot agents, hooks, and prompts:
 > `bash /tmp/brain/install.sh --copilot your-repo/`
 
 > 🔍 **Pre-flight check:** `bash /tmp/brain/install.sh --check` — verifies all prerequisites (git, bash, jq) before touching your repo. Runs in 1 second, no side effects.

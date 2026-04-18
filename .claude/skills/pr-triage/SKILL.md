@@ -1,8 +1,6 @@
 ---
 name: pr-triage
-description: >
-  PR triage: audit open PRs, deep review selected ones, draft and post review comments.
-  Args: "all" to review all, PR numbers to focus (e.g. "42 57"), "fr" for French output, no arg = audit only in English.
+description: PR triage — audit open PRs, deep review selected ones, draft and post review comments. Args: "all" to review all, PR numbers to focus (e.g. "42 57"), "fr" for French output, no arg = audit only in English.
 allowed-tools:
   - Bash
   - Read
