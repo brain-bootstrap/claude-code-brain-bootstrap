@@ -261,7 +261,7 @@ $entry" "$MCP_JSON" && rm -f "$MCP_JSON.bak"
 # ═════════════════════════════════════════════════════════════════
 
 # Plugin tier catalog (used by strategy routing)
-PLUGIN_TIER_RECOMMENDED="SKIP_CLAUDE_MEM SKIP_RTK SKIP_CBM"
+PLUGIN_TIER_RECOMMENDED="SKIP_CLAUDE_MEM SKIP_CBM"
 PLUGIN_TIER_OPTIONAL="SKIP_PLAYWRIGHT SKIP_CODEBURN SKIP_CAVEMAN SKIP_SERENA"
 PLUGIN_TIER_HEAVY="SKIP_GRAPHIFY SKIP_COCOINDEX SKIP_CRG"
 
@@ -284,7 +284,8 @@ apply_strategy() {
       for v in $PLUGIN_TIER_OPTIONAL $PLUGIN_TIER_HEAVY; do
         eval "$v=1"
       done
-      echo "  ✅ Installing recommended plugins only (claude-mem, rtk, codebase-memory-mcp)"
+      echo "  ✅ Installing recommended plugins only (claude-mem, codebase-memory-mcp)"
+      echo "  ⏭️  rtk requires cargo compile (3-7 min) — install later: cargo install rtk"
       echo "  ⏭️  Optional/heavy plugins skipped — install later with the commands shown below"
       ;;
     personalize)
@@ -305,7 +306,7 @@ if [ -n "$INTERACTIVE_MODE" ] && [ -z "$PLUGIN_STRATEGY" ]; then
   echo ""
   echo "    [0] NO          — Skip all plugins (install any later, instructions provided)"
   echo "    [1] FULL        — Install everything (~10-20 min, ~2 GB disk)"
-  echo "    [2] RECOMMENDED — Install core 3 only: claude-mem, rtk, codebase-memory-mcp (~3 min)"
+  echo "    [2] RECOMMENDED — Install core 2 only: claude-mem, codebase-memory-mcp (~30s)"
   echo "    [3] PERSONALIZE — Cherry-pick: review each plugin and decide"
   echo ""
   if [ -n "$LITE_MODE" ]; then
@@ -364,16 +365,7 @@ elif ! command -v claude &>/dev/null; then
 else
   echo "🔌 Plugin Setup — claude-mem..."
 
-  # 1. Attempt to wait for any child bg processes (no-op if Phase 1 ran in a different shell)
-  wait 2>/dev/null || true
-
-  # 2. Show install log if exists
-  if [ -f "claude/tasks/.plugin-install.log" ]; then
-    sed 's/\x1b\[[0-9;]*[A-Za-z]//g; s/\r//g' claude/tasks/.plugin-install.log 2>/dev/null \
-      | grep -v '^[[:space:]]*$' | tail -3 || true
-  fi
-
-  # 3. Check if installed; if not, try synchronous install once
+  # 1. Check if installed; if not, try synchronous install once
   # run_with_timeout guards against TUI hangs in non-TTY environments (Claude Code, Copilot, CI)
   run_with_timeout 15 claude plugin list > claude/tasks/.plugin-list.log 2>&1 || true
   if ! sed 's/\x1b\[[0-9;]*[A-Za-z]//g; s/\r//g' claude/tasks/.plugin-list.log 2>/dev/null | grep -qi 'claude-mem'; then
@@ -493,7 +485,7 @@ fi  # end SKIP_GRAPHIFY
 
 echo ""
 if [ -n "$INTERACTIVE_MODE" ]; then
-  ask_plugin SKIP_RTK "rtk" RECOMMENDED "~1-2 min (compiles from source, needs cargo)" \
+  ask_plugin SKIP_RTK "rtk" OPTIONAL "~3-7 min (compiles from source, needs cargo — may fail on Rust <1.85 edition 2024)" \
     "HIGH savings (60-90% fewer output tokens) · ZERO runtime cost (rewrites tool output before Claude sees it)" \
     "Token optimizer — transparently rewrites Claude's bash commands for 60-90% output token savings.
   │ No-op if absent. Requires Rust/cargo. Hook is already registered in .claude/settings.json." \

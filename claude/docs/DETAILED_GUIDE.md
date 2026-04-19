@@ -1056,7 +1056,7 @@ bash claude/scripts/setup-plugins.sh --skip=graphify,cocoindex .  # Skip specifi
 # Manual install of any individual tool later (examples):
 claude plugin install claude-mem@thedotmack   # claude-mem
 pip install graphifyy && graphify install      # graphify
-cargo install rtk                             # rtk
+cargo install rtk                             # rtk (~3-7 min, requires Rust ≥1.85)
 ```
 
 </details>
@@ -1321,7 +1321,7 @@ mcp__code-review-graph__detect_changes_tool       # Pre-PR: risk score + blast r
 # code-review-graph build .                       # Terminal equivalent
 # code-review-graph postprocess --no-instructions --no-hooks  # Reinstall git hook
 
-# rtk — install once, active forever
+# rtk — optional, install once, active forever (~3-7 min compile, requires Rust ≥1.85)
 cargo install rtk              # Activates hook automatically (pre-wired)
 rtk gain                       # Session token savings
 rtk discover                   # Coverage gaps
