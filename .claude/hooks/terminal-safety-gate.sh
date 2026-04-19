@@ -41,9 +41,9 @@ if echo "$CMD" | grep -qE '(^|[[:space:]])(node|python3?|ruby|irb)[[:space:]]*$'
   exit 2
 fi
 
-# Standalone sleep
-if echo "$CMD" | grep -qE '^sleep[[:space:]]'; then
-  echo "🛑 BLOCKED: Standalone sleep. Use background processes instead."
+# Standalone sleep (bare `sleep N` — NOT compound `sleep N && useful_cmd`)
+if echo "$CMD" | grep -qE '^sleep[[:space:]]+[0-9]+[smhd]?[[:space:]]*$'; then
+  echo "⛔ Blocked: standalone sleep not allowed. Use run_in_background=true + await notification instead." >&2
   exit 2
 fi
 

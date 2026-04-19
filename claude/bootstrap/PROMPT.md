@@ -31,7 +31,7 @@ The ONLY paths you write to: `claude/`, `.claude/`, `.github/`, `CLAUDE.md`, `.c
 ```bash
 cat > claude/tasks/.bootstrap-plan.txt << 'PLAN'
 MODE: TBD (Phase 1 will set this)
-P1: discover.sh → read MODE= line → start plugin bg install
+P1: discover.sh → read MODE= line
 P2: FRESH→SKIP | UPGRADE→read claude/bootstrap/UPGRADE_GUIDE.md, run A through H then verify
 P3S1: populate-templates.sh (1 command)
 P3S2 checklist (mark ✓ as done):
@@ -68,7 +68,7 @@ If you hit ambiguity, make the best choice and document it in the report. Only s
 
 | Phase             | Applies to       | Core action                                                                    | Expected AI-work |
 | :---------------- | :--------------- | :----------------------------------------------------------------------------- | :--------------: |
-| **1** Discovery   | Both             | `discover.sh` → sets MODE, starts plugin bg install                            |       ~2s        |
+| **1** Discovery   | Both             | `discover.sh` → sets MODE                                                      |       ~2s        |
 | **2** Smart Merge | **UPGRADE only** | Read guide → backup → preserve + enhance                                       |     1-3 min      |
 | **3** Populate    | Both             | Script + creative docs                                                         |     3-5 min      |
 | **3.5** MCP       | Both             | Scan discovery → add suggestions to report (no user input)                     |       ~5s        |
@@ -104,14 +104,7 @@ Auto-detects in ~2 seconds: project name, languages (with file counts), package 
 > **⚠️ SELF-BOOTSTRAP CHECK (mandatory):** If `IS_TEMPLATE_REPO=true`, **STOP**. You are running on the template repo itself. Copy template files into your target project first, then re-run.
 
 ```bash
-# Start plugin install in background NOW (runs during Phase 2/3 — saves 30-60s)
-if grep -q 'HAS_CLAUDE_MEM=false' claude/tasks/.discovery.env 2>/dev/null; then
-  setsid claude plugin install claude-mem@thedotmack > claude/tasks/.plugin-install.log 2>&1 &
-  echo "⏳ claude-mem install started in background (PID $!)"
-else
-  echo "✅ claude-mem already installed"
-fi
-# Report all plugin statuses discovered (so the plan reflects true state)
+# Report all plugin statuses discovered (setup-plugins.sh handles installation in Phase 4)
 echo "📦 Plugin status from discovery:"
 grep -E '^HAS_(CLAUDE_MEM|GRAPHIFY|RTK|CBM|COCOINDEX|CRG|CODEBURN|CAVEMAN|SERENA)=' \
   claude/tasks/.discovery.env 2>/dev/null | sed 's/^/  /' || true
@@ -321,7 +314,7 @@ Present this choice to the user (copy-paste friendly):
 >
 > - **0 — NONE** — Skip all plugins (instructions provided to install any later)
 > - **1 — FULL** — Install everything (~10-20 min, ~2 GB disk)
-> - **2 — RECOMMENDED** — Core 3 only: claude-mem, rtk, codebase-memory-mcp (~3 min)
+> - **2 — RECOMMENDED** — Core 2 only: claude-mem, codebase-memory-mcp (~30s)
 > - **3 — PERSONALIZE** — Cherry-pick: you choose which ones
 
 **Default** (if user says "just go" / "whatever" / presses enter): use `--strategy=recommended`.
@@ -333,7 +326,7 @@ Present each plugin with a brief description. Ask which to **skip** (default = i
 | #   | Plugin                  | Tier           | What it does                                       | Install time |
 | --- | ----------------------- | -------------- | -------------------------------------------------- | ------------ |
 | 1   | **claude-mem**          | ✅ Recommended | Cross-session memory (SQLite + ChromaDB)           | ~30s         |
-| 2   | **rtk**                 | ✅ Recommended | Token optimizer (60-90% fewer output tokens)       | ~1-2 min     |
+| 2   | **rtk**                 | 💡 Optional    | Token optimizer (60-90% fewer output tokens)       | ~3-7 min (Rust compilation, may fail) |
 | 3   | **codebase-memory-mcp** | ✅ Recommended | Structural graph (14 MCP tools, 120× fewer tokens) | ~10s         |
 | 4   | **graphify**            | ⚠️ Heavy       | Knowledge graph (communities, god-node detection)  | ~3-5 min     |
 | 5   | **cocoindex-code**      | ⚠️ Heavy       | Semantic vector search (~1 GB torch download)      | ~5-15 min    |
@@ -346,7 +339,7 @@ Present each plugin with a brief description. Ask which to **skip** (default = i
 Collect the user's answer, then build the `--skip=` flag. Examples:
 
 - User: "skip the heavy ones" → `--skip=graphify,cocoindex,crg`
-- User: "just the recommended 3" → use `--strategy=recommended` instead
+- User: "just the recommended 2" → use `--strategy=recommended` instead
 - User: "all except playwright and cocoindex" → `--skip=playwright,cocoindex`
 
 #### Step 4C: Run the command
@@ -372,7 +365,7 @@ bash claude/scripts/setup-plugins.sh --strategy=full --skip=graphify,cocoindex,c
 
 The script handles installation in sequence:
 
-1. **claude-mem** — waits for background install → disables (quota protection) → kills worker → verifies → updates CLAUDE.md plugin placeholder. If install failed, documents in report with manual command.
+1. **claude-mem** — installs synchronously → disables (quota protection) → kills worker → verifies → updates CLAUDE.md plugin placeholder. If install failed, documents in report with manual command.
 2. **graphify** — detects Python 3.10+ → `pip install graphifyy` → `graphify install` (global skill) → `graphify hook install` (git hooks for auto-rebuild on commit/branch switch). If Python not available, skips gracefully with manual instructions.
 
 > **graphify builds the graph on demand, not during bootstrap.** After bootstrap completes, the user runs `/graphify .` to build the knowledge graph (~5 min first run, then incremental via SHA256 cache). The PreToolUse hook in settings.json is already wired — it activates automatically once `graphify-out/graph.json` exists.
@@ -493,7 +486,7 @@ Include the timing trail output in the report.
 
 > **⚠️ AI-work-only times.** Wall-clock includes Claude Code reasoning overhead, tool latency (~2-5s each), context processing. **Expect ~2-3× wall-clock multiplier.** Report both.
 
-- **Phase 1 (Discovery + plugin bg):** ~2s (1 script + background install)
+- **Phase 1 (Discovery):** ~2s (1 script)
 - **Phase 2 (Smart Merge):** ~1-3 min (UPGRADE only — separate guide)
 - **Phase 3 Step 1 (Mechanical):** ~5s (1 script)
 - **Phase 3 Step 2 (Creative):** ~5-10 min (🔴 MANDATORY first, then 🟡 RECOMMENDED)
