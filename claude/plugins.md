@@ -214,9 +214,9 @@ pip uninstall graphifyy              # remove package
 **Install:**
 
 ```bash
-# Automatic: setup-plugins.sh installs rtk via cargo if cargo is in PATH
-# Manual fallback:
-cargo install rtk           # Install the binary (~1-2 min compile)
+# Optional tier — not in recommended strategy (requires Rust ≥1.85, ~3-7 min compile)
+# Install manually or via --strategy=full / --strategy=personalize:
+cargo install rtk           # Install the binary (~3-7 min compile, may fail on Rust <1.85)
 # No rtk init needed — bootstrap's .claude/hooks/rtk-rewrite.sh + settings.json are pre-wired
 ```
 
