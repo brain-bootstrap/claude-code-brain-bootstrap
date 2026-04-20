@@ -7,6 +7,43 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.6.6] — 2026-04-20 (PR #37)
+
+### 🐛 SKIP_RTK Optional Tier
+
+### Fixed
+- **`setup-plugins.sh`** — move `SKIP_RTK` to `OPTIONAL` tier so the recommended install strategy skips RTK by default (#37)
+
+---
+
+## [0.6.5] — 2026-04-20 (PR #36)
+
+### 🐛 Bootstrap Sleep Block & RTK Recommended Strategy
+
+### Fixed
+- **`setup-plugins.sh`** — narrow sleep block scope to prevent unintended delays during non-RTK install paths (#36)
+- **`setup-plugins.sh`** — drop RTK from recommended tier; remove background install pattern that caused race conditions (#36)
+
+---
+
+## [0.6.4] — 2026-04-20 (PR #35)
+
+### 🐛 Merge Script Exit Codes
+
+### Fixed
+- **`merge-claude-md.sh`** / **`merge-claudeignore.sh`** / **`merge-settings.sh`** — exit `2` (no-op) changed to exit `0` so callers treat a clean no-op as success, not an error (#35)
+
+---
+
+## [0.6.3] — 2026-04-19 (PR #34)
+
+### 🐛 Plugin Ecosystem URL Fixes
+
+### Fixed
+- **`README.md`** / **`DETAILED_GUIDE.md`** — correct broken plugin ecosystem URLs that returned 404 (#34)
+
+---
+
 ## [0.6.2] — 2026-04-18 (PRs #30, #32)
 
 ### 🧹 Bootstrap Phantom File Cleanup
@@ -432,6 +469,10 @@ Root instructions · General scoped instructions · Terminal safety instructions
 ---
 
 <!-- Version comparison links -->
+[0.6.6]: https://github.com/y-abs/claude-code-brain-bootstrap/compare/v0.6.5...v0.6.6
+[0.6.5]: https://github.com/y-abs/claude-code-brain-bootstrap/compare/v0.6.4...v0.6.5
+[0.6.4]: https://github.com/y-abs/claude-code-brain-bootstrap/compare/v0.6.3...v0.6.4
+[0.6.3]: https://github.com/y-abs/claude-code-brain-bootstrap/compare/v0.6.2...v0.6.3
 [0.6.2]: https://github.com/y-abs/claude-code-brain-bootstrap/compare/v0.6.1...v0.6.2
 [0.6.1]: https://github.com/y-abs/claude-code-brain-bootstrap/compare/v0.6.0...v0.6.1
 [0.6.0]: https://github.com/y-abs/claude-code-brain-bootstrap/compare/v0.5.2...v0.6.0
