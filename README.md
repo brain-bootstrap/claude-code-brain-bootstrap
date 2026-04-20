@@ -16,14 +16,18 @@
 </p>
 
 <p align="center">
-  <a href="#-sound-familiar">The Problem</a> &nbsp;·&nbsp;
-  <a href="#-what-changes-when-you-add-a-brain">What Changes</a> &nbsp;·&nbsp;
-  <a href="#-get-started-in-5-minutes">Quick Start</a> &nbsp;·&nbsp;
-  <a href="#-how-it-works-under-the-hood">How It Works</a> &nbsp;·&nbsp;
-  <a href="#-whats-inside">What's Inside</a> &nbsp;·&nbsp;
-  <a href="#-safety-defense-in-depth">Safety</a> &nbsp;·&nbsp;
-  <a href="#-plugin-ecosystem">Plugins</a> &nbsp;·&nbsp;
-  <a href="#-make-it-yours">Extend It</a> &nbsp;·&nbsp;
+  <img src="fresh_install_example.png" alt="Brain Bootstrap fresh install example" width="800" />
+</p>
+
+<p align="center">
+  <a href="#-sound-familiar">Sound Familiar?</a> &nbsp;·&nbsp;
+  <a href="#-what-changes-when-you-add-a-brain">Before & After</a> &nbsp;·&nbsp;
+  <a href="#-get-started-in-5-minutes">5 Min Setup</a> &nbsp;·&nbsp;
+  <a href="#-how-it-works-under-the-hood">Under the Hood</a> &nbsp;·&nbsp;
+  <a href="#-whats-inside">200+ Files</a> &nbsp;·&nbsp;
+  <a href="#-safety-defense-in-depth">Guardrails</a> &nbsp;·&nbsp;
+  <a href="#-plugin-ecosystem">Superpowers</a> &nbsp;·&nbsp;
+  <a href="#-make-it-yours">Make It Yours</a> &nbsp;·&nbsp;
   <a href="#-faq">FAQ</a> &nbsp;·&nbsp;
   <a href="#-contributing">Contribute</a>
 </p>
