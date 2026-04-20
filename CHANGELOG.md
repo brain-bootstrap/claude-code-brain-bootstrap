@@ -7,6 +7,31 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [1.0.0] — 2026-04-20
+
+### 🚀 First Stable Release
+
+ᗺB Brain Bootstrap graduates from pre-release to **v1.0.0** — a production-ready AI knowledge architecture for Claude Code, GitHub Copilot, and any LLM-powered IDE.
+
+Seven months of alpha → beta development condensed into a single installable template:
+
+- **One command install** — `bash install.sh /path/to/your-repo` handles FRESH and UPGRADE
+- **31 slash commands** — `/plan`, `/review`, `/mr`, `/debug`, `/bootstrap`, `/health` and 25 more
+- **15 lifecycle hooks** — terminal safety, TDD enforcement, quality gates, session continuity
+- **11 skills** — invocable AI workflows (root-cause-trace, cross-layer-check, graphify, caveman…)
+- **5 subagents** — `reviewer` (Opus), `plan-challenger` (Opus), `security-auditor` (Opus), `research`, `session-reviewer`
+- **10-tool plugin stack** — graphify · codebase-memory-mcp · cocoindex-code · code-review-graph · claude-mem · rtk · playwright · codeburn · caveman · serena
+- **1100+ framework detections** — 25+ languages, 21 package managers, 13 CI systems via `discover.sh`
+- **Cross-platform** — CI matrix on Linux, macOS, Windows; bash 3.2 compatible; Git Bash ready
+- **127+ validation checks** — template integrity, hook executability, placeholder detection, link verification
+- **Community-ready** — `CONTRIBUTING.md`, issue templates, PR template, Discussions
+
+### What changed since v0.6.6
+
+No new features — this is a stability milestone. All pre-release bug fixes are included (see v0.6.3–v0.6.6 entries below).
+
+---
+
 ## [0.6.6] — 2026-04-20 (PR #37)
 
 ### 🐛 SKIP_RTK Optional Tier
@@ -469,6 +494,7 @@ Root instructions · General scoped instructions · Terminal safety instructions
 ---
 
 <!-- Version comparison links -->
+[1.0.0]: https://github.com/y-abs/claude-code-brain-bootstrap/compare/v0.6.6...v1.0.0
 [0.6.6]: https://github.com/y-abs/claude-code-brain-bootstrap/compare/v0.6.5...v0.6.6
 [0.6.5]: https://github.com/y-abs/claude-code-brain-bootstrap/compare/v0.6.4...v0.6.5
 [0.6.4]: https://github.com/y-abs/claude-code-brain-bootstrap/compare/v0.6.3...v0.6.4
