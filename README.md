@@ -5,8 +5,8 @@
 </p>
 
 <h1 align="center">ᗺB - Brain Bootstrap</h1>
-<p align="center"><em>Give your AI coding assistant the one thing it's missing:<br>deep knowledge of your codebase.</em></p>
-<p align="center"><sub>by <a href="https://github.com/y-abs">y-abs</a></sub></p>
+<p align="center"><em>Your AI coding assistant is brilliant.<br>It just forgets everything, ignores your rules, and breaks your conventions.<br><strong>Brain doesn't hope the AI behaves — it makes it. Permanently.</strong></em></p>
+<p align="center"><sub>by <a href="https://github.com/y-abs">y-abs</a> · no third-party installs without your explicit approval</sub></p>
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="MIT License"></a>
   <a href="https://github.com/y-abs/claude-code-brain-bootstrap/actions/workflows/ci.yml"><img src="https://github.com/y-abs/claude-code-brain-bootstrap/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
@@ -34,35 +34,45 @@
 
 You open your 50-service monorepo. You ask your AI coding assistant to add a feature.
 
-It doesn't know `yarn turbo build` is the right command, not `npm run build`, that you use Biome, not Prettier.
-It doesn't know your `@company/utils` package already has a `formatDate()` — so it installs `date-fns` and writes a new one.
-It doesn't know your team's rules. None.
+It doesn't know `yarn turbo build` is the right command, not `npm run build`. That you use Biome, not Prettier.
+That your `@company/utils` already has `formatDate()` — so it installs `date-fns` and writes a new one from scratch.
 
-**So, it guesses. It hallucinates.**
+**It doesn't know your codebase. It doesn't know your team. It doesn't know your rules.**
 
-**It breaks conventions your team spent months establishing.**
+You write a `CLAUDE.md`. Explicit: _"never edit tsconfig.json"_, _"always use yarn"_, _"never git push --force."_
 
-You correct it. It says sorry, does it right this time.
+It reads them.
 
-And tomorrow?
+**Then ignores them when it feels like it.**
 
-**You correct it again. The exact same things.**
+It edits `tsconfig.json` to silence a type error. Rewrites your `.eslintrc` to "fix" linting.
+Runs a command that opens a pager — session hangs. Nearly drops your staging DB while "helping."
 
-Every session starts from zero. Every correction you made: gone.
+You correct it. It apologizes. Tomorrow: **same mistakes.**
 
-You become a full-time AI babysitter 🍼, repeating the same instructions, fixing the same mistakes, re-explaining the same architecture.
+**Every session starts from zero. Every correction you made: gone.**
+
+And it keeps going:
+
+- Your teammate uses Copilot. Another uses Cursor. None share context — three assistants, three different understandings of the same codebase.
+- That architecture doc you wrote six months ago? The codebase moved on. The doc didn't.
+- Code reviews are only as good as how you prompted that day. Inconsistent, unreliable.
+- You ask it to research something — it floods your entire context and you lose the thread of what you were building.
+- You push a PR. Three days later: _"this broke 14 other files."_
+
+You become a full-time AI babysitter 🍼 — repeating the same instructions, fixing the same mistakes, re-explaining the same architecture.
 
 Session after session after session...
 
-**What if you could teach it once, and it would remember forever?**
+**What if you could teach it once, enforce it automatically — and never babysit again?**
 
 ---
 
 ## 🔒 Not Suggestions — Guarantees
 
-Prompt files and instruction repos hope the AI follows them. Brain doesn't hope — it **enforces**.
+Every other instruction system hopes the AI complies. Brain doesn't hope — it **enforces**.
 
-Corrections become permanent. Forbidden patterns get blocked _before_ they run. The knowledge base updates itself as your codebase evolves. You stop fixing the same mistakes twice.
+Corrections become permanent rules. Forbidden patterns get blocked _before_ they run — by deterministic bash scripts, not AI judgment. The knowledge base updates itself as your codebase evolves. The same mistake cannot happen twice.
 
 **You stop babysitting — the AI just knows.**
 
@@ -184,6 +194,8 @@ Your repo
 
 **Write your knowledge once. Every AI tool reads it.** ✍️
 
+Because it lives in your repo, it's version-controlled, PR-reviewed, and shared across your team automatically — no SaaS account, no sync, no drift.
+
 ### 🎯 The Three-Layer Token Strategy
 
 The system is designed to **minimize token cost** while maximizing context — your AI doesn't drown in 50K tokens when you ask it to fix a typo:
@@ -267,18 +279,18 @@ Plus 13 more — session recovery, batch formatting, test reminders, identity re
 
 Ten plugins available — pick what fits your stack. Run `setup-plugins.sh` and choose a strategy (`recommended`, `full`, `personalize`, or `none`):
 
-| Tool                                                                                        | Axis                                                                                      |      Requires      |               Impact                |
-| :------------------------------------------------------------------------------------------ | :---------------------------------------------------------------------------------------- | :----------------: | :---------------------------------: |
-| **[code-review-graph](https://github.com/tirth8205/code-review-graph)**                     | 🔴 Change risk analysis — risk score 0–100, blast radius, breaking changes from git diffs |    Python 3.10+    |         Pre-PR safety gate          |
-| **[codebase-memory-mcp](https://github.com/DeusData/codebase-memory-mcp)**                  | 🔍 Live structural graph — call traces, blast radius, dead code, Cypher queries           |        curl        | **120× fewer tokens** vs file reads |
-| **[graphify](https://github.com/safishamsi/graphify)**                                      | 🗺️ Architecture snapshot — god nodes, community clusters, cross-module map                |    Python 3.10+    |  **71.5× fewer tokens** per query   |
-| **[cocoindex-code](https://github.com/cocoindex-io/cocoindex-code)**                        | 🔎 Semantic search — find code by meaning via local vector embeddings (no API key)        |    Python 3.11+    |      Finds what grep/AST miss       |
-| **[serena](https://github.com/oraios/serena)**                                              | 🔧 LSP symbol refactoring — rename/move/inline across entire codebase atomically          | uvx + Python 3.11+ |           Low — on-demand           |
-| **[rtk](https://github.com/rtk-ai/rtk)**                                                   | ⚡ Command efficiency — transparently rewrites bash commands for compressed output        |       cargo        |   **60-90% output token savings**   |
-| **[playwright](https://github.com/microsoft/playwright-mcp)**                               | 🌐 Browser automation — navigate, click, fill, snapshot web pages                         |    Node.js 18+     |        LOW-MEDIUM token cost        |
-| **[caveman](https://github.com/JuliusBrussee/caveman)**                                     | 🗣️ Response compression — terse replies (65-87% savings) + input file compression         |      Node.js       |    **Negative** — reduces tokens    |
-| **[codeburn](https://github.com/AgentSeal/codeburn)**                                       | 📊 Token observability — cost breakdown by task, model, USD                               | Node.js 18+ (CLI)  |     Zero (reads session files)      |
-| **[claude-mem](https://github.com/thedotmack/claude-mem)**                                  | 🧠 Cross-session memory — captures every interaction, searchable across sessions          |         —          | ⚠️ Disabled by default (~48% quota) |
+| Tool                                                                       | Axis                                                                                      |      Requires      |               Impact                |
+| :------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------- | :----------------: | :---------------------------------: |
+| **[code-review-graph](https://github.com/tirth8205/code-review-graph)**    | 🔴 Change risk analysis — risk score 0–100, blast radius, breaking changes from git diffs |    Python 3.10+    |         Pre-PR safety gate          |
+| **[codebase-memory-mcp](https://github.com/DeusData/codebase-memory-mcp)** | 🔍 Live structural graph — call traces, blast radius, dead code, Cypher queries           |        curl        | **120× fewer tokens** vs file reads |
+| **[graphify](https://github.com/safishamsi/graphify)**                     | 🗺️ Architecture snapshot — god nodes, community clusters, cross-module map                |    Python 3.10+    |  **71.5× fewer tokens** per query   |
+| **[cocoindex-code](https://github.com/cocoindex-io/cocoindex-code)**       | 🔎 Semantic search — find code by meaning via local vector embeddings (no API key)        |    Python 3.11+    |      Finds what grep/AST miss       |
+| **[serena](https://github.com/oraios/serena)**                             | 🔧 LSP symbol refactoring — rename/move/inline across entire codebase atomically          | uvx + Python 3.11+ |           Low — on-demand           |
+| **[rtk](https://github.com/rtk-ai/rtk)**                                   | ⚡ Command efficiency — transparently rewrites bash commands for compressed output        |       cargo        |   **60-90% output token savings**   |
+| **[playwright](https://github.com/microsoft/playwright-mcp)**              | 🌐 Browser automation — navigate, click, fill, snapshot web pages                         |    Node.js 18+     |    Replaces manual browser steps    |
+| **[caveman](https://github.com/JuliusBrussee/caveman)**                    | 🗣️ Response compression — terse replies (65-87% savings) + input file compression         |      Node.js       |    **Negative** — reduces tokens    |
+| **[codeburn](https://github.com/AgentSeal/codeburn)**                      | 📊 Token observability — cost breakdown by task, model, USD                               | Node.js 18+ (CLI)  |     Zero (reads session files)      |
+| **[claude-mem](https://github.com/thedotmack/claude-mem)**                 | 🧠 Cross-session memory — captures every interaction, searchable across sessions          |         —          | ⚠️ Disabled by default (~48% quota) |
 
 > 📚 **Full plugin reference:** [claude/plugins.md](claude/plugins.md) — usage examples, install commands, toggle scripts, token economics.
 
