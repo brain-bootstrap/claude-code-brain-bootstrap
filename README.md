@@ -115,7 +115,7 @@ Every AI coding tool reads instructions. None of them enforce those instructions
 **Prerequisites:** `git`, `bash` ≥ 3.2, `jq` ([install jq](https://jqlang.github.io/jq/download/) if missing — `brew install jq` / `apt install jq`).
 
 ```bash
-git clone https://github.com/y-abs/claude-code-brain-bootstrap.git /tmp/brain
+git clone https://github.com/brain-bootstrap/claude-code-brain-bootstrap.git /tmp/brain
 bash /tmp/brain/install.sh your-repo/
 rm -rf /tmp/brain
 ```
@@ -364,7 +364,7 @@ Not ready to share your Brain with the team? Switch to **SOLO mode**: add `CLAUD
 
 PRs welcome! All contributions must be **domain-agnostic**.
 
-👉 **[Full guide → CONTRIBUTING.md](CONTRIBUTING.md)** · 🐛 **[Report a bug](https://github.com/y-abs/claude-code-brain-bootstrap/issues/new/choose)** · CI runs 5 checks on every PR.
+👉 **[Full guide → CONTRIBUTING.md](CONTRIBUTING.md)** · 🐛 **[Report a bug](https://github.com/brain-bootstrap/claude-code-brain-bootstrap/issues/new/choose)** · CI runs 5 checks on every PR.
 
 ---
 
