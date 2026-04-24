@@ -61,7 +61,18 @@
 - [Pattern 2 — e.g., "Config is load-once — changes require restart"]
 - [Pattern 3]
 
-## 🔌 Plugin Status
+## � MCP Suggestions (based on your stack)
+
+[Fill from Phase 3.5 scan — only include if relevant:]
+
+- [e.g., "postgres MCP — DATABASE detected → /mcp add postgres"]
+- [e.g., "github MCP — CI_SYSTEM=github-actions detected → /mcp add github"]
+- [e.g., "filesystem MCP — Docker/Kubernetes detected → /mcp add filesystem"]
+- [e.g., "web-search MCP — frontend stack detected → /mcp add web-search"]
+
+→ Browse all: [registry.smithery.ai](https://registry.smithery.ai)
+
+## �🔌 Plugin Status
 ```
 
 🔌 claude-mem v[X] — DISABLED (saves ~48% API quota)

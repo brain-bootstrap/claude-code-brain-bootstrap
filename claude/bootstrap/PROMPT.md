@@ -32,14 +32,15 @@ The ONLY paths you write to: `claude/`, `.claude/`, `CLAUDE.md`, `.claudeignore`
 cat > claude/tasks/.bootstrap-plan.txt << 'PLAN'
 MODE: TBD (Phase 1 will set this)
 P1: discover.sh → read MODE= line
-P2: FRESH→SKIP | UPGRADE→read claude/bootstrap/UPGRADE_GUIDE.md, run A through H then verify
+P2: IF UPGRADE → read+execute claude/bootstrap/UPGRADE_GUIDE.md (steps 0 through 4) — HARD GATE, cannot skip
+    IF FRESH  → skip Phase 2 entirely, go directly to Phase 3
 P3S1: populate-templates.sh (1 command)
 P3S2 checklist (mark ✓ as done):
   [ ] 1. architecture.md
   [ ] 2. CLAUDE.md (lookup table + critical patterns + hard constraints + key decisions + don't list)
   [ ] 3. Domain docs + .claude/rules/ per signal
   [ ] 4. .claude/commands/context.md (domain→file mapping)
-  [ ] 6. test.md + lint.md vs SECONDARY_LANGUAGES
+  [ ] 5. test.md + lint.md vs SECONDARY_LANGUAGES (multi-language validation)
   [ ] 7+8. rules/ + skills/ per domain (MANDATORY if ≥3 domains)
 P4: setup-plugins.sh (1 command — all automated)
 P5: post-bootstrap-validate.sh · report from claude/bootstrap/REFERENCE.md
@@ -64,14 +65,14 @@ If you hit ambiguity, make the best choice and document it in the report. Only s
 
 ## 📋 Phase Map
 
-| Phase             | Applies to       | Core action                                                                    | Expected AI-work |
-| :---------------- | :--------------- | :----------------------------------------------------------------------------- | :--------------: |
-| **1** Discovery   | Both             | `discover.sh` → sets MODE                                                      |       ~2s        |
-| **2** Smart Merge | **UPGRADE only** | Read guide → backup → preserve + enhance                                       |     1-3 min      |
-| **3** Populate    | Both             | Script + creative docs                                                         |     3-5 min      |
-| **3.5** MCP       | Both             | Scan discovery → add suggestions to report (no user input)                     |       ~5s        |
-| **4** Plugins     | Both             | 1 script: claude-mem (install, disable, verify) + graphify (pip, skill, hooks) |       ~5s        |
-| **5** Validate    | Both             | Validate script + report                                                       |       30s        |
+| Phase             | Applies to          | Core action                                                                    | Expected AI-work |
+| :---------------- | :------------------ | :----------------------------------------------------------------------------- | :--------------: |
+| **1** Discovery   | Both                | `discover.sh` → sets MODE                                                      |       ~2s        |
+| **2** Smart Merge | **UPGRADE ONLY** ⛔ | Read guide → backup → preserve + enhance — **HARD GATE**                       |     1-3 min      |
+| **3** Populate    | Both                | Script + creative docs                                                         |     3-5 min      |
+| **3.5** MCP       | Both                | Scan discovery → add suggestions to report (no user input)                     |       ~5s        |
+| **4** Plugins     | Both                | 1 script: claude-mem (install, disable, verify) + graphify (pip, skill, hooks) |       ~5s        |
+| **5** Validate    | Both                | Validate script + report                                                       |       30s        |
 
 ---
 
@@ -101,6 +102,11 @@ Auto-detects in ~2 seconds: project name, languages (with file counts), package 
 
 > **⚠️ SELF-BOOTSTRAP CHECK (mandatory):** If `IS_TEMPLATE_REPO=true`, **STOP**. You are running on the template repo itself. Copy template files into your target project first, then re-run.
 
+**After Phase 1: What is MODE?**
+
+- MODE=FRESH → proceed to Phase 3 (skip Phase 2 entirely)
+- MODE=UPGRADE → **you MUST do Phase 2 before Phase 3. Do NOT skip it.**
+
 ```bash
 # Report all plugin statuses discovered (setup-plugins.sh handles installation in Phase 4)
 echo "📦 Plugin status from discovery:"
@@ -111,17 +117,30 @@ echo "P1 $(date +%H:%M:%S)" > claude/tasks/.bootstrap-progress.txt
 
 ---
 
-### Phase 2: Smart Merge (UPGRADE only — FRESH: skip entirely, go to Phase 3)
+### Phase 2: Smart Merge — 🚨 UPGRADE ONLY (FRESH: skip to Phase 3)
 
-> If MODE=UPGRADE: read `claude/bootstrap/UPGRADE_GUIDE.md` and follow ALL steps A through H. Then continue here.
-> If MODE=FRESH: skip to Phase 3.
-> **💾 Backup note**: `install.sh` already created `claude/tasks/.pre-upgrade-backup.tar.gz` — no need to re-run it.
+> ⛔ **HARD GATE — DO NOT PROCEED TO PHASE 3 UNTIL THIS IS COMPLETE.**
+> This phase exists to protect user data. Skipping it will overwrite or erase domain knowledge.
+
+**If MODE=UPGRADE:**
+
+Read the full upgrade guide now and follow ALL steps (0 through 4) before continuing:
 
 ```bash
 cat claude/bootstrap/UPGRADE_GUIDE.md
 ```
 
-**✅ Phase 2 done when `phase2-verify.sh` passes (instructions in the guide).**
+Execute every step in the guide. Do not summarize or abbreviate — follow each step literally.
+
+> 💾 **Backup note**: `install.sh` already created `claude/tasks/.pre-upgrade-backup.tar.gz` — no need to re-run it.
+
+**✅ Phase 2 is complete when:**
+
+- `bash claude/scripts/phase2-verify.sh .` passes
+- No user-written content was modified or removed
+- All remaining `{{PLACEHOLDER}}` tokens are identified (not yet filled — that's Phase 3)
+
+Only after all three conditions are met: proceed to Phase 3.
 
 ---
 
