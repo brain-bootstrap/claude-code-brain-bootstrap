@@ -3,12 +3,12 @@
 # Safely handles FRESH installs, Brain upgrades, AND pre-existing Claude configs.
 #
 # Usage:
-#   git clone https://github.com/y-abs/claude-code-brain-bootstrap.git /tmp/brain
+#   git clone https://github.com/brain-bootstrap/claude-code-brain-bootstrap.git /tmp/brain
 #   bash /tmp/brain/install.sh /path/to/your-repo
 #   rm -rf /tmp/brain
 #
 # For GitHub Copilot setup, use copilot-brain-bootstrap instead:
-#   https://github.com/y-abs/copilot-brain-bootstrap
+#   https://github.com/brain-bootstrap/copilot-brain-bootstrap
 #
 # FRESH mode:  No Claude-related files exist → copies entire template.
 # UPGRADE mode: ANY Claude-related file exists → smart merge:
@@ -99,7 +99,7 @@ for arg in "$@"; do
     --copilot)
       echo "⚠️  --copilot flag is not supported in claude-code-brain-bootstrap."
       echo "   For GitHub Copilot setup, use copilot-brain-bootstrap:"
-      echo "   https://github.com/y-abs/copilot-brain-bootstrap"
+      echo "   https://github.com/brain-bootstrap/copilot-brain-bootstrap"
       exit 1
       ;;
     *) POSITIONAL_ARGS+=("$arg") ;;

@@ -20,7 +20,7 @@ fail() { echo "  ❌ $1"; FAIL=$((FAIL + 1)); }
 warn() { echo "  ⚠️  $1"; WARN=$((WARN + 1)); }
 
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "  ᗺB  Brain Bootstrap  ·  Validator  ·  by y-abs"
+echo "  ᗺB  Brain Bootstrap  ·  Validator  ·  by brain-bootstrap"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
 # 0. Template integrity (only when running on the template repo itself)

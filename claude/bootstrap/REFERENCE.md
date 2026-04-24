@@ -10,7 +10,7 @@
 ```markdown
 # 🎉 Bootstrap Complete — [PROJECT_NAME]
 
-> ᗺB · [Brain Bootstrap](https://github.com/y-abs/claude-code-brain-bootstrap) · by y-abs
+> ᗺB · [Brain Bootstrap](https://github.com/brain-bootstrap/claude-code-brain-bootstrap) · by brain-bootstrap
 > Your AI coding assistant just learned everything about your codebase.
 > Generated [date] · **Mode: Fresh Install** · ⏱️ Completed in ~[N] minutes
 
@@ -108,7 +108,7 @@ What it does: Knowledge graph of your codebase — architecture questions cost
 ```markdown
 # 🔄 Configuration Upgraded — [PROJECT_NAME]
 
-> ᗺB · [Brain Bootstrap](https://github.com/y-abs/claude-code-brain-bootstrap) · by y-abs
+> ᗺB · [Brain Bootstrap](https://github.com/brain-bootstrap/claude-code-brain-bootstrap) · by brain-bootstrap
 > Your Brain just got smarter — new capabilities installed, all your knowledge preserved.
 > Generated [date] · **Mode: Smart Upgrade** · ⏱️ Completed in ~[N] minutes
 

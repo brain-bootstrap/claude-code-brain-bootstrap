@@ -1,7 +1,7 @@
 # Bootstrap Upgrade Guide — ᗺB Brain Bootstrap
 
 > **Read this ONLY when `MODE=UPGRADE`.** Follow steps 0 through 4, then return to `claude/bootstrap/PROMPT.md` → Phase 3.
-> Powered by [Brain Bootstrap](https://github.com/y-abs/claude-code-brain-bootstrap) · by y-abs
+> Powered by [Brain Bootstrap](https://github.com/brain-bootstrap/claude-code-brain-bootstrap) · by brain-bootstrap
 
 ---
 

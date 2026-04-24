@@ -1,7 +1,7 @@
 # Bootstrap Prompt — ᗺB Brain Bootstrap
 
 > **Paste this into Claude Code.** Works on both fresh repos and repos with an existing Claude Code configuration.
-> Powered by [Brain Bootstrap](https://github.com/y-abs/claude-code-brain-bootstrap) · by y-abs
+> Powered by [Brain Bootstrap](https://github.com/brain-bootstrap/claude-code-brain-bootstrap) · by brain-bootstrap
 > The AI will detect your tech stack, then either install from scratch or **intelligently upgrade** your existing config — preserving all your domain knowledge, lessons, and customizations.
 
 ---

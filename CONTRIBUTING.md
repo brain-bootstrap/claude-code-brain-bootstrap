@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="https://github.com/y-abs/claude-code-brain-bootstrap">
+  <a href="https://github.com/brain-bootstrap/claude-code-brain-bootstrap">
     <img src="https://img.shields.io/badge/ᗺB-Brain%20Bootstrap-6B21A8?style=for-the-badge&labelColor=1e1b4b" alt="ᗺB Brain Bootstrap" />
   </a>
 </p>
@@ -75,7 +75,7 @@ This runs **127+ checks** — file existence, hook executability, placeholder in
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  ᗺB  Brain Bootstrap  ·  Validator  ·  by y-abs
+  ᗺB  Brain Bootstrap  ·  Validator  ·  by brain-bootstrap
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   ...
   Results: ✅ 137 passed | ❌ 0 failed | ⚠️  0 warnings
@@ -314,20 +314,20 @@ set -euo pipefail
 
 Found a bug? Something confusing in the docs? Got a feature idea?
 
-👉 **[Open an issue](https://github.com/y-abs/claude-code-brain-bootstrap/issues/new/choose)** — pick the right template:
+👉 **[Open an issue](https://github.com/brain-bootstrap/claude-code-brain-bootstrap/issues/new/choose)** — pick the right template:
 
 | Template               | When to use                                                         |
 | :--------------------- | :------------------------------------------------------------------ |
 | 🐛 **Bug Report**      | Something isn't working — crashes, wrong output, broken hooks       |
 | ✨ **Feature Request** | You have an idea for a new command, hook, detection, or improvement |
 
-> 💬 **Got a question?** Use [GitHub Discussions](https://github.com/y-abs/claude-code-brain-bootstrap/discussions) instead — issues are for actionable bugs and features.
+> 💬 **Got a question?** Use [GitHub Discussions](https://github.com/brain-bootstrap/claude-code-brain-bootstrap/discussions) instead — issues are for actionable bugs and features.
 
 ---
 
 ## 💬 Questions?
 
-- **Open a discussion** on [GitHub Discussions](https://github.com/y-abs/claude-code-brain-bootstrap/discussions)
+- **Open a discussion** on [GitHub Discussions](https://github.com/brain-bootstrap/claude-code-brain-bootstrap/discussions)
 - **Check the FAQ** in [README.md](README.md#-faq) or [DETAILED_GUIDE.md](claude/docs/DETAILED_GUIDE.md#-faq)
 
 ---

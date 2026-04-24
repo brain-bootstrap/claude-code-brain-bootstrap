@@ -1,13 +1,13 @@
 <p align="center">
   <h1 align="center">ᗺB · Brain Bootstrap — The Complete Guide</h1>
-  <p align="center"><em>by <a href="https://github.com/y-abs">y-abs</a></em></p>
+  <p align="center"><em>by <a href="https://github.com/brain-bootstrap">brain-bootstrap</a></em></p>
   <p align="center"><strong>Everything you need to know, nothing you don't.<br>From "what is this?" to "I want to build my own hooks."</strong></p>
   <p align="center">
     <a href="#-the-big-picture">Big Picture</a> · <a href="#-get-started">Get Started</a> · <a href="#-the-architecture-tour">Architecture</a> · <a href="#-every-file-explained">Files</a> · <a href="#-deep-dives">Deep Dives</a> · <a href="#-make-it-yours">Customize</a> · <a href="#-faq">FAQ</a>
   </p>
   <p align="center">
     <a href="../../LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="MIT License"></a>
-    <a href="#"><img src="https://img.shields.io/badge/200+_files-10_categories-blueviolet" alt="200+ files"></a>
+    <a href="#"><img src="https://img.shields.io/badge/170+_files-10_categories-blueviolet" alt="170+ files"></a>
     <a href="#"><img src="https://img.shields.io/badge/31_commands-16_hooks-brightgreen" alt="Automation"></a>
   </p>
 </p>
@@ -57,7 +57,7 @@
 
 ## 🗺️ The Big Picture
 
-Claude Code Brain is **200+ files** organized into **10 categories** that turn your AI coding assistant from a talented stranger into a senior engineer who knows your codebase inside out.
+Claude Code Brain is **170+ files** organized into **10 categories** that turn your AI coding assistant from a talented stranger into a senior engineer who knows your codebase inside out.
 
 Here's the mental model:
 
@@ -98,7 +98,7 @@ Here's the mental model:
 ### Step 1 — Install the template
 
 ```bash
-git clone https://github.com/y-abs/claude-code-brain-bootstrap.git /tmp/brain
+git clone https://github.com/brain-bootstrap/claude-code-brain-bootstrap.git /tmp/brain
 bash /tmp/brain/install.sh your-repo/
 rm -rf /tmp/brain
 ```
@@ -629,7 +629,7 @@ Already have a Brain? Here's how to upgrade safely:
 
 ```bash
 # 1. Stage the template
-git clone https://github.com/y-abs/claude-code-brain-bootstrap.git .claude-upgrade
+git clone https://github.com/brain-bootstrap/claude-code-brain-bootstrap.git .claude-upgrade
 rm -rf .claude-upgrade/.git
 
 # 2. Run bootstrap — it detects UPGRADE mode automatically
@@ -956,7 +956,7 @@ Update hooks, settings, and commands (generic layer). Don't overwrite your `clau
 </details>
 
 <details>
-<summary><strong>⚡ What if I don't use all 29 commands?</strong></summary>
+<summary><strong>⚡ What if I don't use all 31 commands?</strong></summary>
 
 No cost for unused commands — they only load when invoked. Delete what you don't need, or keep them around for the day you do.
 
@@ -1475,7 +1475,7 @@ All contributions must be **domain-agnostic** — no project-specific content.
 
 👉 **[Full step-by-step guide → CONTRIBUTING.md](../../CONTRIBUTING.md)** — fork, branch, validate, submit. Includes walkthrough examples for adding a language, a command, and a hook.
 
-🐛 **Found a bug?** → [Open an issue](https://github.com/y-abs/claude-code-brain-bootstrap/issues/new/choose) — structured templates for bug reports and feature requests.
+🐛 **Found a bug?** → [Open an issue](https://github.com/brain-bootstrap/claude-code-brain-bootstrap/issues/new/choose) — structured templates for bug reports and feature requests.
 
 📋 **PR template auto-loads** with a 9-point checklist when you submit.
 

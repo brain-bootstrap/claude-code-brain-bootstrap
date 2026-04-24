@@ -532,19 +532,19 @@ Terminal safety · Quality gates · Self-maintenance · Memory policy · Domain 
 
 <!-- Version comparison links -->
 
-[1.0.0]: https://github.com/y-abs/claude-code-brain-bootstrap/compare/v0.6.6...v1.0.0
-[0.6.6]: https://github.com/y-abs/claude-code-brain-bootstrap/compare/v0.6.5...v0.6.6
-[0.6.5]: https://github.com/y-abs/claude-code-brain-bootstrap/compare/v0.6.4...v0.6.5
-[0.6.4]: https://github.com/y-abs/claude-code-brain-bootstrap/compare/v0.6.3...v0.6.4
-[0.6.3]: https://github.com/y-abs/claude-code-brain-bootstrap/compare/v0.6.2...v0.6.3
-[0.6.2]: https://github.com/y-abs/claude-code-brain-bootstrap/compare/v0.6.1...v0.6.2
-[0.6.1]: https://github.com/y-abs/claude-code-brain-bootstrap/compare/v0.6.0...v0.6.1
-[0.6.0]: https://github.com/y-abs/claude-code-brain-bootstrap/compare/v0.5.2...v0.6.0
-[0.5.2]: https://github.com/y-abs/claude-code-brain-bootstrap/compare/v0.5.1...v0.5.2
-[0.5.1]: https://github.com/y-abs/claude-code-brain-bootstrap/compare/v0.5.0...v0.5.1
-[0.5.0]: https://github.com/y-abs/claude-code-brain-bootstrap/compare/v0.4.0...v0.5.0
-[0.4.0]: https://github.com/y-abs/claude-code-brain-bootstrap/compare/v0.3.0...v0.4.0
-[0.3.0]: https://github.com/y-abs/claude-code-brain-bootstrap/compare/v0.2.0...v0.3.0
-[0.2.0]: https://github.com/y-abs/claude-code-brain-bootstrap/compare/v0.1.0...v0.2.0
-[0.1.0]: https://github.com/y-abs/claude-code-brain-bootstrap/compare/v0.0.1...v0.1.0
-[0.0.1]: https://github.com/y-abs/claude-code-brain-bootstrap/releases/tag/v0.0.1
+[1.0.0]: https://github.com/brain-bootstrap/claude-code-brain-bootstrap/compare/v0.6.6...v1.0.0
+[0.6.6]: https://github.com/brain-bootstrap/claude-code-brain-bootstrap/compare/v0.6.5...v0.6.6
+[0.6.5]: https://github.com/brain-bootstrap/claude-code-brain-bootstrap/compare/v0.6.4...v0.6.5
+[0.6.4]: https://github.com/brain-bootstrap/claude-code-brain-bootstrap/compare/v0.6.3...v0.6.4
+[0.6.3]: https://github.com/brain-bootstrap/claude-code-brain-bootstrap/compare/v0.6.2...v0.6.3
+[0.6.2]: https://github.com/brain-bootstrap/claude-code-brain-bootstrap/compare/v0.6.1...v0.6.2
+[0.6.1]: https://github.com/brain-bootstrap/claude-code-brain-bootstrap/compare/v0.6.0...v0.6.1
+[0.6.0]: https://github.com/brain-bootstrap/claude-code-brain-bootstrap/compare/v0.5.2...v0.6.0
+[0.5.2]: https://github.com/brain-bootstrap/claude-code-brain-bootstrap/compare/v0.5.1...v0.5.2
+[0.5.1]: https://github.com/brain-bootstrap/claude-code-brain-bootstrap/compare/v0.5.0...v0.5.1
+[0.5.0]: https://github.com/brain-bootstrap/claude-code-brain-bootstrap/compare/v0.4.0...v0.5.0
+[0.4.0]: https://github.com/brain-bootstrap/claude-code-brain-bootstrap/compare/v0.3.0...v0.4.0
+[0.3.0]: https://github.com/brain-bootstrap/claude-code-brain-bootstrap/compare/v0.2.0...v0.3.0
+[0.2.0]: https://github.com/brain-bootstrap/claude-code-brain-bootstrap/compare/v0.1.0...v0.2.0
+[0.1.0]: https://github.com/brain-bootstrap/claude-code-brain-bootstrap/compare/v0.0.1...v0.1.0
+[0.0.1]: https://github.com/brain-bootstrap/claude-code-brain-bootstrap/releases/tag/v0.0.1
