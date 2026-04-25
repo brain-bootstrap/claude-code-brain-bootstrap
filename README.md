@@ -50,11 +50,9 @@ Then it keeps learning. Every correction becomes a permanent rule. Bash hooks bl
 
 **The problem it solves:**
 
-You ask Claude to add a feature. It uses `npm run build` — but you use `yarn turbo build`. It installs `date-fns` even though `@company/utils` already has `formatDate()`. It edits `tsconfig.json` to silence a type error — the file you explicitly said never to touch.
+Claude Code is stateless by design — each session starts blank. So you end up re-explaining your stack, re-enforcing the same rules, re-correcting the same errors. Every. Single. Session.
 
-You correct it. It apologizes. Next session: same mistakes.
-
-Claude Code is stateless by design — each session starts blank. So you end up re-explaining your stack, re-enforcing the same rules, re-correcting the same errors. Every. Single. Session. **You become the AI's memory.**
+**You become the AI's memory.**
 
 ---
 
