@@ -38,7 +38,7 @@
 
 ## 💡 What This Is
 
-**Brain Bootstrap is a project configuration template — a ready-made `.claude/` folder you install once into your repo. It gives Claude Code persistent memory, enforced guardrails, and 31 built-in workflows so your AI assistant finally knows your project and stops repeating the same mistakes every session.**
+**Brain Bootstrap is not a template to copy and forget. It's a behavioral enforcement layer for Claude Code — bash hooks that block violations before they execute, a persistent knowledge base that survives every session reset, and 31 workflows + 49 skills purpose-built for recurring engineering tasks. Install it once. Claude Code stops guessing and starts knowing.**
 
 ---
 
