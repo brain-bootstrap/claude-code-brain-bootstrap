@@ -189,7 +189,7 @@ done
 # 6. Skills exist
 echo ""
 echo "🧠 Skills..."
-for skill in tdd root-cause-trace changelog careful cross-layer-check codebase-memory cocoindex-code code-review-graph brainstorming codeburn issue-triage playwright pr-triage receiving-code-review repo-recap serena subagent-driven-development writing-skills; do
+for skill in tdd root-cause-trace changelog careful cross-layer-check codebase-memory cocoindex-code code-review-graph brainstorming codeburn issue-triage playwright pr-triage receiving-code-review repo-recap serena subagent-driven-development writing-skills ask bootstrap build checkpoint clean-worktrees cleanup context db debug deps diff docker git health lint maintain mcp migrate mr plan research resume review serve squad-plan status test ticket update-code-index worktree worktree-status; do
   if [ -f ".claude/skills/$skill/SKILL.md" ]; then pass "skill: $skill"; else fail "MISSING skill: $skill/SKILL.md"; fi
 done
 

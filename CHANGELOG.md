@@ -7,6 +7,50 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [1.1.0] — 2026-04-25 — Skills Parity (49) & validate.sh Improvements
+
+### Added
+
+#### Skills — 31 new skills (18 → 49, full parity with Codex)
+
+- **`ask`** — route codebase questions to structural graph, semantic search, or risk analysis
+- **`bootstrap`** — auto-configure CLAUDE.md and claude/ knowledge docs for a new project
+- **`build`** — build the project and verify it compiles cleanly after changes
+- **`checkpoint`** — save session state before context gets full; write task state to claude/tasks/todo.md
+- **`clean-worktrees`** — remove all git worktrees for merged branches; accepts --dry-run
+- **`cleanup`** — clean workspace: build artifacts, dependencies, caches, Docker volumes, or temp files
+- **`context`** — load all relevant claude/ knowledge files for a domain area at session start
+- **`db`** — query the database: list schemas, tables, describe a table, or run SQL
+- **`debug`** — root cause analysis for bugs using the 5-step investigation method
+- **`deps`** — manage dependencies and fix CVEs; check outdated packages, run security audit
+- **`diff`** — analyze branch diff against merge-base; stat overview, full diff, file list, commit list
+- **`docker`** — Docker workflow helpers: list containers, build, run, logs, compose up/down, prune
+- **`git`** — git workflow helpers: status, rebase, commit, amend, log, stash, branch management
+- **`health`** — verify Brain Bootstrap configuration health with pass/warn/fail per component
+- **`lint`** — run the linter and formatter check before opening a PR
+- **`maintain`** — detect and fix stale claude/*.md knowledge docs
+- **`mcp`** — manage MCP servers: list tools, check status, add a new server to .mcp.json
+- **`migrate`** — run database or schema migrations: up, down, rollback, status, create new migration
+- **`mr`** — generate a PR/MR description after review passes
+- **`plan`** — plan a non-trivial task before implementing; writes checkable plan to claude/tasks/todo.md
+- **`research`** — isolated codebase exploration that preserves main context; spawns explorer subagent
+- **`resume`** — resume previous session from claude/tasks/todo.md
+- **`review`** — full 10-point expert code review; spawns reviewer subagent for isolation
+- **`serve`** — start service(s) locally for development; reads commands from claude/build.md
+- **`squad-plan`** — generate parallel workstream plan for multi-agent Claude work
+- **`status`** — project status dashboard: instructions budget, unfilled placeholders, hooks health
+- **`test`** — run the test suite and report results; reads test command from claude/build.md
+- **`ticket`** — create a ticket/issue description with evidence-backed proof sections
+- **`update-code-index`** — scan codebase exports and generate CODE_INDEX.md organized by capability
+- **`worktree`** — manage git worktrees for parallel work on multiple branches simultaneously
+- **`worktree-status`** — show all active git worktrees with branch name, dirty/clean status, last commit
+
+### Changed
+
+- **`claude/scripts/validate.sh`** — domain-free check improved: now correctly skips known-safe paths (`claude/tasks/`, `claude/docs/`, `CONTRIBUTING.md`) reducing false positives; template integrity section refined
+
+---
+
 ## [1.0.0] — 2026-04-20
 
 ### 🚀 First Stable Release
